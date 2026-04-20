@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Profilage Neuromusculaire — Rugby</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F4F4F2;--surface:#fff;--border:#E0E0DA;--border-strong:#C0C0BA;
+  --text:#1A1A16;--text-mid:#5A5A52;--text-light:#9A9A90;
+  --blue:#1A3A6B;--blue-light:#E8EDF5;--blue-mid:#4A6FA5;
+  --green:#1E6B3A;--green-light:#E6F4EC;
+  --orange:#C44B1A;--orange-light:#FDF0EB;
+  --red:#B01A1A;--red-light:#FAEAEA;
+  --yellow:#B8860B;--yellow-light:#FEF9E7;
+  --purple:#5B3A8C;--purple-light:#F5F0FF;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.4;}
+/* HEADER */
+.hdr{background:var(--blue);color:#fff;padding:0 24px;display:flex;align-items:stretch;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+.hdr-l{display:flex;align-items:center;gap:24px;}
+.hdr h1{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:15px 0;white-space:nowrap;}
+.nav{display:flex;align-items:stretch;}
+.ntab{padding:0 14px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.55);border-bottom:3px solid transparent;display:flex;align-items:center;transition:all .15s;white-space:nowrap;}
+.ntab:hover{color:#fff;}.ntab.on{color:#fff;border-bottom-color:#fff;}
+.hdr-r{display:flex;align-items:center;gap:8px;padding:10px 0;}
+.wrap{max-width:1400px;margin:0 auto;padding:16px 18px;}
+.pg{display:none;}.pg.on{display:block;}
+
+/* CARDS */
+.btn{padding:6px 14px;border:none;border-radius:3px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+.btn-p{background:var(--blue);color:#fff;}.btn-p:hover{background:#254d8e;}
+.btn-s{background:var(--surface);color:var(--text);border:1px solid var(--border-strong);}.btn-s:hover{background:var(--bg);}
+.btn-g{background:var(--green);color:#fff;}.btn-g:hover{background:#155230;}
+.btn-o{background:var(--orange);color:#fff;}.btn-o:hover{background:#a33a10;}
+.btn-sim{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:11px;}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:.04em;}
+.pill-g{background:var(--green-light);color:var(--green);}
+.pill-o{background:var(--orange-light);color:var(--orange);}
+.pill-r{background:var(--red-light);color:var(--red);}
+.pill-b{background:var(--blue-light);color:var(--blue);}
+.pill-y{background:var(--yellow-light);color:var(--yellow);}
+.pill-gr{background:#f0f0ec;color:var(--text-mid);}
+
+/* FORM */
+.pform{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px 20px;margin-bottom:14px;}
+.pform h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:14px;}
+.fgrid.wide{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+.fl label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:4px;}
+.fl input,.fl select{width:100%;padding:7px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;}
+.fl input:focus,.fl select:focus{border-color:var(--blue-mid);background:#fff;box-shadow:0 0 0 2px rgba(74,111,165,.15);}
+.fl input[type=number]{font-family:var(--mono);}
+.fl .hint{font-size:10px;color:var(--text-light);margin-top:3px;}
+.form-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* PLAYERS LIST */
+.plist{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.ptab{padding:5px 12px;border:1px solid var(--border-strong);border-radius:3px;background:var(--surface);cursor:pointer;font-size:12px;font-weight:500;color:var(--text-mid);display:flex;align-items:center;gap:6px;transition:all .15s;}
+.ptab:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);}
+.ptab.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+.ptab .rm{opacity:.5;cursor:pointer;font-size:12px;}.ptab .rm:hover{opacity:1;}
+.acts{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.acts-r{margin-left:auto;display:flex;gap:7px;}
+
+/* PROFIL CARD */
+.profil-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+.pcard h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.pcard.alert{border-color:var(--orange);background:var(--orange-light);}
+.pcard.ok{border-color:var(--green);}
+.metric{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:5px 0;border-bottom:1px solid var(--border);}
+.metric:last-child{border-bottom:none;margin-bottom:0;}
+.metric .mlabel{font-size:12px;color:var(--text-mid);}
+.metric .mval{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--text);}
+.metric .mval.hi{color:var(--green);}.metric .mval.lo{color:var(--orange);}.metric .mval.crit{color:var(--red);}
+.prescr-block{background:var(--bg);border-radius:4px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--blue-mid);}
+.prescr-block.alert{border-left-color:var(--orange);}
+.prescr-block.ok{border-left-color:var(--green);}
+.prescr-block.crit{border-left-color:var(--red);}
+.prescr-block h4{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mid);margin-bottom:4px;}
+.prescr-block p{font-size:12px;color:var(--text);line-height:1.4;}
+
+/* RADAR */
+.radar-wrap{display:flex;justify-content:center;padding:10px 0;}
+.radar-wrap canvas{max-width:340px;max-height:340px;}
+
+/* TEAM TABLE */
+table.tt{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);font-size:12px;}
+table.tt thead th{background:var(--blue);color:#fff;padding:8px 8px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+table.tt thead th.c{text-align:center;}
+table.tt tbody tr{cursor:pointer;transition:background .1s;}
+table.tt tbody tr:nth-child(even){background:var(--bg);}
+table.tt tbody tr:hover{background:var(--blue-light);}
+table.tt td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.tt td.c{text-align:center;}
+.mono{font-family:var(--mono);font-weight:600;}
+
+/* IMPORT/EXPORT */
+.import-zone{border:2px dashed var(--border-strong);border-radius:6px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);}
+.import-zone:hover,.import-zone.drag{border-color:var(--blue-mid);background:var(--blue-light);}
+.import-zone p{font-size:13px;color:var(--text-mid);}
+.import-zone .ico{font-size:32px;margin-bottom:8px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--text-light);}
+.empty .ico{font-size:36px;margin-bottom:8px;}
+
+/* ALERT BOX */
+.alert-box{background:var(--red-light);border:1px solid var(--red);border-radius:4px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--red);font-weight:500;}
+
+/* RESPONSIVE TOUCH */
+@media(max-width:768px){
+  .profil-grid{grid-template-columns:1fr;}
+  .fgrid{grid-template-columns:1fr 1fr;}
+  .hdr h1{font-size:11px;}
+  .ntab{padding:0 10px;font-size:11px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <h1>Profilage Neuromusculaire — Rugby</h1>
+    <div class="nav">
+      <div class="ntab on" onclick="pg('saisie',this)">Saisie</div>
+      <div class="ntab" onclick="pg('profil',this)">Profil joueur</div>
+      <div class="ntab" onclick="pg('equipe',this)">Vue équipe</div>
+      <div class="ntab" onclick="pg('import',this)">Import / Export</div>
+      <div class="ntab" onclick="pg('refs',this)">📚 Références</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <button class="btn btn-sim" onclick="loadDemo()">⚡ Données démo Colomiers</button>
+    <button class="btn btn-sim" onclick="loadSimulation()" style="background:rgba(255,220,80,.2);border-color:rgba(255,220,80,.5);">🏉 Simulation 30 joueurs</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- PAGE SAISIE -->
+<div class="pg on" id="pg-saisie">
+  <div class="pform">
+    <h3>Nouveau joueur / Mise à jour</h3>
+    <div class="fgrid wide">
+      <div class="fl"><label>Nom Prénom</label><input id="f-nom" placeholder="ex : FERNANDEZ Romain"></div>
+      <div class="fl"><label>Poste</label>
+        <select id="f-poste">
+          <option value="">— Sélectionner —</option>
+          <option value="Pilier G">Pilier G</option><option value="Pilier D">Pilier D</option>
+          <option value="Talonneur">Talonneur</option><option value="2e ligne">2e ligne</option>
+          <option value="3e ligne">3e ligne</option><option value="Demi">Demi</option>
+          <option value="Ouvreur">Ouvreur</option><option value="Centre">Centre</option>
+          <option value="Ailier">Ailier</option><option value="Arrière">Arrière</option>
+        </select>
+      </div>
+      <div class="fl"><label>Taille (m)</label><input id="f-taille" type="number" step="0.01" min="1.5" max="2.2" placeholder="ex : 1.83"></div>
+      <div class="fl"><label>Masse (kg)</label><input id="f-masse" type="number" step="0.5" min="60" max="160" placeholder="ex : 105"></div>
+      <div class="fl"><label>Forme</label>
+        <select id="f-forme"><option value="">—</option><option>Excellent</option><option>Très bon</option><option>Bon</option><option>Moyen</option><option>Mauvais</option></select>
+      </div>
+    </div>
+    <div class="fgrid">
+      <div class="fl"><label>RSI — Drop Jump</label><input id="f-rsi" type="number" step="0.01" min="0" max="5" placeholder="ex : 1.8"><div class="hint">Hauteur saut / temps contact</div></div>
+      <div class="fl"><label>RSImod — CMJ</label><input id="f-rsimod" type="number" step="0.01" min="0" max="1.5" placeholder="ex : 0.45"><div class="hint">Hauteur CMJ / push-off time</div></div>
+      <div class="fl"><label>Tc (s) — Temps contact</label><input id="f-tc" type="number" step="0.001" min="0.1" max="0.6" placeholder="ex : 0.22"><div class="hint">Temps de contact au sol (s)</div></div>
+      <div class="fl"><label>CMJ (cm)</label><input id="f-cmj" type="number" step="0.5" min="10" max="80" placeholder="ex : 40"></div>
+      <div class="fl"><label>SJ (cm)</label><input id="f-sj" type="number" step="0.5" min="10" max="75" placeholder="ex : 34"></div>
+    </div>
+    <div class="fgrid">
+      <div class="fl"><label>F0 (N/kg) — Sprint FV</label><input id="f-f0" type="number" step="0.1" min="0" max="20" placeholder="ex : 8.5"><div class="hint">Force horizontale max normalisée</div></div>
+      <div class="fl"><label>V0 (m/s) — Sprint FV</label><input id="f-v0" type="number" step="0.1" min="0" max="15" placeholder="ex : 9.2"><div class="hint">Vitesse maximale théorique</div></div>
+      <div class="fl"><label>Date RSI</label><input id="f-date-rsi" type="date"></div>
+      <div class="fl"><label>Date FV</label><input id="f-date-fv" type="date"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-p" onclick="savePlayer()">💾 Enregistrer</button>
+      <button class="btn btn-s" onclick="clearForm()">✕ Effacer</button>
+      <span id="save-msg" style="font-size:12px;color:var(--green);display:none">✓ Enregistré</span>
+    </div>
+  </div>
+
+  <div class="plist" id="ptabs"></div>
+  <div class="acts" id="actbar" style="display:none">
+    <button class="btn btn-s" onclick="editCurrent()">✏️ Modifier</button>
+    <div class="acts-r">
+      <button class="btn btn-s" onclick="pg('profil',document.querySelector('.ntab:nth-child(2))'))">📊 Voir profil</button>
+      <button class="btn btn-o" onclick="deleteCurrent()">🗑 Supprimer</button>
+    </div>
+  </div>
+  <div id="saisie-preview"><div class="empty"><div class="ico">📋</div><p>Ajoutez un joueur pour commencer.</p></div></div>
+</div>
+
+<!-- PAGE PROFIL -->
+<div class="pg" id="pg-profil">
+  <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;">
+    <div class="fl" style="margin:0;min-width:220px"><label>Joueur</label>
+      <select id="profil-sel" onchange="renderProfil()" style="padding:7px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:13px;background:var(--bg);outline:none;">
+        <option value="">— Sélectionner —</option>
+      </select>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:7px;">
+      <button class="btn btn-s" onclick="exportProfilCSV()">⬇ Export fiche</button>
+      <button class="btn btn-g" onclick="window.print()">🖨 Imprimer</button>
+    </div>
+  </div>
+  <div id="profil-container"><div class="empty"><div class="ico">📊</div><p>Sélectionnez un joueur.</p></div></div>
+</div>
+
+<!-- PAGE EQUIPE -->
+<div class="pg" id="pg-equipe">
+  <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:12px;color:var(--text-mid)" id="team-count"></span>
+    <div class="acts-r" style="margin-left:auto;display:flex;gap:7px;">
+      <button class="btn btn-s" onclick="exportTeamCSV()">⬇ Export équipe CSV</button>
+    </div>
+  </div>
+  <div id="equipe-container"><div class="empty"><div class="ico">👥</div><p>Aucun joueur enregistré.</p></div></div>
+</div>
+
+<!-- PAGE IMPORT/EXPORT -->
+<div class="pg" id="pg-import">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+    <div class="pform">
+      <h3>Import CSV</h3>
+      <div class="import-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()" ondragover="dragOver(event)" ondrop="dropFile(event)" ondragleave="dragLeave(event)">
+        <div class="ico">📂</div>
+        <p><strong>Cliquer ou déposer un fichier CSV</strong></p>
+        <p style="margin-top:4px;font-size:11px;">Format attendu : export de cette application ou CSV Saisie Excel</p>
+      </div>
+      <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="importCSV(this)">
+      <div id="import-msg" style="margin-top:10px;font-size:12px;"></div>
+      <div style="margin-top:14px;">
+        <p style="font-size:11px;color:var(--text-mid);margin-bottom:6px;"><strong>Format CSV attendu (en-têtes) :</strong></p>
+        <p style="font-size:10px;font-family:var(--mono);background:var(--bg);padding:8px;border-radius:3px;color:var(--text-mid);">NOM PRÉNOM,POSTE,RSI (DJ),RSImod (CMJ),Tc (s),CMJ (cm),SJ (cm),F0 (N/kg),V0 (m/s),Date RSI,Date F-V,Forme,Taille (m),Masse (kg)</p>
+      </div>
+    </div>
+    <div class="pform">
+      <h3>Export</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-g" onclick="exportAllCSV()" style="justify-content:center;padding:12px;">⬇ Export complet — tous les joueurs (CSV)</button>
+        <button class="btn btn-s" onclick="exportTeamCSV()" style="justify-content:center;padding:12px;">⬇ Export vue équipe (CSV)</button>
+        <button class="btn btn-s" onclick="exportSaisieCSV()" style="justify-content:center;padding:12px;">⬇ Export format Saisie Excel (CSV)</button>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:4px;font-size:11px;color:var(--text-mid);">
+        <p><strong>Export complet</strong> — toutes les données + prescriptions pour chaque joueur</p>
+        <p style="margin-top:4px;"><strong>Vue équipe</strong> — tableau synthétique coach (FVimb, RSI, prescriptions)</p>
+        <p style="margin-top:4px;"><strong>Format Saisie</strong> — compatible avec la feuille Saisie de l'Excel original</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PAGE RÉFÉRENCES -->
+<div class="pg" id="pg-refs">
+  <div class="pform">
+    <h3>Bases scientifiques — Fondements de l'outil</h3>
+    <p style="font-size:12px;color:var(--text-mid);margin-bottom:16px">Cet outil de profilage neuromusculaire repose sur un ensemble de travaux scientifiques. Cette page distingue ce qui est <strong>directement sourcé</strong> dans la littérature de ce qui relève d'une <strong>extrapolation raisonnée</strong>.</p>
+
+    <!-- FV HORIZONTAL -->
+    <div style="margin-bottom:20px;">
+      <div style="background:var(--blue);color:white;padding:8px 14px;border-radius:4px 4px 0 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+        📐 Profil Force-Vitesse Horizontal — Cadre central
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:6px">Références directes ✅</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li><strong>Morin & Samozino (2016)</strong> — IJSPP — Modèle F-V horizontal sprint, F0, V0, Pmax, FVimb%, droite optimale Sfvopt. Référence centrale de tout l'outil.</li>
+              <li><strong>Samozino et al. (2021)</strong> — Résolution numérique exacte de Sfvopt (Golden Section + Newton-Raphson). Formule : <code>Sfvopt = 1.1689 × (F0×V0)^(1/3) / D^(2/3)</code></li>
+              <li><strong>Cross et al. (2016)</strong> — Rugby spécifique — Distance cible : <strong>20m pour les avants</strong>, <strong>30m pour les 3/4</strong>. Les valeurs de F0 normatives rugby : avants ~8–10 N/kg, arrières ~7–9 N/kg.</li>
+              <li><strong>Lahti et al. (2020)</strong> — Entraînement spécifique au déficit force-vitesse → prescriptions différenciées F-dom vs V-dom.</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--orange);margin-bottom:6px">Extrapolations raisonnées ⚠️</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li>Seuil FVimb > 140% → "survitesse" — rationnel Myrvang 2024 mais seuil non validé spécifiquement rugby.</li>
+              <li>Seuil Pmax < 15 W/kg → "base critique" — issu de valeurs normatives rugby pro (Cross 2016), extrapolé comme seuil d'alerte.</li>
+              <li>Seuil Pmax ≥ 18 W/kg → prescription sled légère vs lourde — rationnel Espasa 2025 / Rodriguez-Rosell 2022, calibration précise non publiée pour rugby Pro D2.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLED -->
+    <div style="margin-bottom:20px;">
+      <div style="background:#1a5a3a;color:white;padding:8px 14px;border-radius:4px 4px 0 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+        🛷 Prescription Sled — Traîneaux résistants
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">Références directes ✅</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li><strong>Méta-analyse 2025 (n=49 études, 1281 participants)</strong> — Classification zones sled : Légère <20% BM (vdec ≤10%), Modérée 20–50% BM, Lourde 50–80% BM, Très lourde ≥80% BM. Seuil efficacité vs sprint libre : 20.7% BM.</li>
+              <li><strong>Morin et al. (2017)</strong> — Sled lourd (65% BM) → amélioration F0 et phase accélération 0–15m. Profil vitesse-dominant → priorité sled lourd.</li>
+              <li><strong>Espasa et al. (2025)</strong> — Sled léger (15% BM) + sprint assisté → amélioration V0. Profil force-dominant Pmax ≥18 W/kg.</li>
+              <li><strong>Rodriguez-Rosell et al. (2022)</strong> — Sled modéré (35% BM) → profil équilibré, développement Pmax global.</li>
+              <li><strong>Myrvang et al. (2024)</strong> — Sprint assisté (−5 à −10% Vmax) → profil élite FVimb > 140% + Pmax ≥22 W/kg. PAS de sled.</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--orange);margin-bottom:6px">Extrapolations raisonnées ⚠️</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li>Découpage précis des zones (ex. 80–90% BM comme cible très lourde) — dérivé de la méta-analyse mais calibration exacte non spécifique rugby.</li>
+              <li>Volumes max (45m, 60m, 90m, 135m/séance) — issus de Morin/Rodriguez-Rosell, extrapolés comme plafonds sécuritaires.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLYO -->
+    <div style="margin-bottom:20px;">
+      <div style="background:#5B3A8C;color:white;padding:8px 14px;border-radius:4px 4px 0 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+        🦘 Prescription Pliométrie — Niveaux Verkhoshansky
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">Références directes ✅</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li><strong>Verkhoshansky (méthode choc)</strong> — NIV.3 : DJ 75–80cm, MAX 40 contacts/séance, surface dure, 5–10s/rep + 2–3min récupération. Référence fondatrice de la pliométrie intensive.</li>
+              <li><strong>Flanagan & Comyns (2008)</strong> — Classification RSI : seuils 1.5 et 2.0 comme marqueurs de progression pliométrique. RSI < 1.5 → NIV.1, RSI 1.5–2.0 → NIV.2, RSI ≥ 2.0 + Tc ≤ 200ms → NIV.3.</li>
+              <li><strong>Gathercole et al. (2015)</strong> — RSImod (CMJ) : seuils 0.38 et 0.50. RSImod < 0.38 → SSC lent insuffisant. Indicateur de fatigue neuromusculaire et état de forme.</li>
+              <li><strong>Potach & Chu (NSCA)</strong> — Volumes plio : NIV.1 : 80–100 contacts | NIV.2 : 100–120 contacts | Fréquence 2×/sem.</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--orange);margin-bottom:6px">Extrapolations raisonnées ⚠️</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li>Tc > 250ms → blocage DJ — Verkhoshansky recommande Tc court mais le seuil 250ms comme blocage absolu est une interprétation clinique prudente, non une règle publiée explicitement.</li>
+              <li>Tc 200–250ms → zone de prudence (NIV.3 potentiel) — extrapolé logiquement entre les seuils Verkhoshansky.</li>
+              <li>RSI < 1.5 → bloque balistique en musculation — rationnel SSC : "sans base SSC réactive, le transfert du balistique vers le sprint est limité". Logique mais non validé directement.</li>
+              <li>CMJ–SJ > 5cm → SSC lent actif — tendance observée en rugby (2021) mais cut-off non validé spécifiquement.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MUSCU -->
+    <div style="margin-bottom:20px;">
+      <div style="background:#7A4A1A;color:white;padding:8px 14px;border-radius:4px 4px 0 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+        🏋️ Prescription Musculation — Prilepin & profil FV
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">Références directes ✅</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li><strong>Suchomel et al. (2018)</strong> — Sports Medicine — "Strength first" : Pmax insuffisante → force max prioritaire avant balistique. Seuil Pmax bas → 80–90% 1RM avant tout développement de puissance.</li>
+              <li><strong>Rodriguez-Rosell et al. (2022)</strong> — Complexe Pmax 50–70% pour profil équilibré. Alternance séances lourdes/balistiques.</li>
+              <li><strong>Prilepin (1974) via Haff & Triplett (2015) NSCA</strong> — Table de charge-volume pour haltérophilie. Extrapolée ici à la musculation de puissance. <em>Note : validée pour force max, extrapolée pour balistique.</em></li>
+              <li><strong>Lahti et al. (2020)</strong> — Force max 80–90% + complexes → Force-dominant Pmax insuffisante. Développer F0 + Pmax avant V0.</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size:12px;font-weight:600;color:var(--orange);margin-bottom:6px">Extrapolations raisonnées ⚠️</p>
+            <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+              <li>Application de Prilepin au balistique (30–50%) — les volumes recommandés (18–24 reps, 5–6 séries) sont issus des tables Prilepin pour <80% 1RM, extrapolés au Jump Squat/balistique. Cormie et al. recommandent des volumes différents pour le balistique.</li>
+              <li>Seuil 20–35% BM pour balistique pur — Loturco et al. + Cormie et al. valident l'intensité, la fourchette précise est une synthèse pratique.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPRINT -->
+    <div style="margin-bottom:20px;">
+      <div style="background:#1A4A6B;color:white;padding:8px 14px;border-radius:4px 4px 0 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+        💨 Prescription Sprint — Individualisée par profil FV
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:14px;">
+        <ul style="font-size:12px;color:var(--text-mid);line-height:1.8;padding-left:16px;">
+          <li><strong>Morin & Samozino (2016)</strong> — Sprint résisté très lourd → améliore F0 et l'accélération 0–10m (profil V-dom).</li>
+          <li><strong>Espasa et al. (2025)</strong> — Sled léger + sprint assisté → améliore V0 et vitesse maximale (profil F-dom Pmax ok).</li>
+          <li><strong>Myrvang et al. (2024)</strong> — Sprint assisté élastique/1080Sprint : −5 à −10% Vmax → profil élite V0 limitant. PAS de sled.</li>
+          <li><strong>Morin et al. (2017)</strong> — Hill sprint + sled lourd 65% BM → profil V-dom, développement F0 et RFD.</li>
+          <li><strong>Rodriguez-Rosell et al. (2022)</strong> — Sprint libre + sled modéré 35% BM → profil équilibré Pmax ok.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- BIBLIOGRAPHIE COMPLÈTE -->
+    <div style="margin-bottom:10px;">
+      <div style="background:var(--text);color:white;padding:8px 14px;border-radius:4px 4px 0 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+        📖 Bibliographie complète
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:14px;">
+        <ul style="font-size:11px;color:var(--text-mid);line-height:2.0;padding-left:16px;columns:2;gap:24px;">
+          <li>Cross M.R. et al. (2016). A comparison of methods for measuring force-velocity relationships in elite rugby athletes. <em>Int J Sports Physiol Perform.</em></li>
+          <li>Espasa L. et al. (2025). Light resisted sprint + assisted sprint individualized to FV profile. <em>Eur J Sport Sci.</em></li>
+          <li>Flanagan E.P. & Comyns T.M. (2008). The use of contact time and the reactive strength index to optimize fast stretch-shortening cycle training. <em>Strength Cond J.</em></li>
+          <li>Gathercole R. et al. (2015). Alternative countermovement-jump analysis to quantify acute neuromuscular fatigue. <em>Int J Sports Physiol Perform.</em></li>
+          <li>Haff G. & Triplett N.T. (2015). <em>Essentials of Strength Training and Conditioning</em>. 4th ed. NSCA.</li>
+          <li>Lahti J. et al. (2020). Individual sprint force-velocity profile adaptations to in-season assisted and resisted sprint training. <em>Scand J Med Sci Sports.</em></li>
+          <li>Méta-analyse (2025). Resisted sprint training load optimization — n=49 études, 1281 participants. <em>J Strength Cond Res</em> (sous presse).</li>
+          <li>Morin J.B. & Samozino P. (2016). Interpreting power-force-velocity profiles for individualized and specific training. <em>Int J Sports Physiol Perform.</em></li>
+          <li>Morin J.B. et al. (2017). Individual force-velocity profile and sprint mechanical properties. <em>Int J Sports Physiol Perform.</em></li>
+          <li>Myrvang A. et al. (2024). Supramaximal assisted sprint training in elite athletes. <em>Eur J Appl Physiol.</em></li>
+          <li>Rodriguez-Rosell D. et al. (2022). Combined resistance and plyometric training for sprint performance. <em>J Strength Cond Res.</em></li>
+          <li>Samozino P. et al. (2021). A theoretical framework and empirical validation of FV optimal profile in sprint. <em>Med Sci Sports Exerc.</em></li>
+          <li>Suchomel T.J. et al. (2018). The importance of muscular strength: Training considerations. <em>Sports Med.</em></li>
+          <li>Verkhoshansky Y.V. (1966/1985). <em>Fundamentals of Special Strength Training in Sport</em>. Shock method & plyometrics.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="padding:12px 14px;background:var(--yellow-light);border:1px solid var(--yellow);border-radius:4px;font-size:11px;color:var(--yellow);margin-top:10px;">
+      <strong>Note méthodologique :</strong> Les prescriptions de cet outil combinent des données directement issues de la littérature et des extrapolations raisonnées basées sur des mécanismes validés. Les seuils précis (FVimb%, charges sled, niveaux RSI) constituent des repères opérationnels pour la décision terrain — ils ne se substituent pas au jugement clinique du préparateur physique ni à une réévaluation longitudinale régulière (6–8 semaines recommandées).
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ================================================================
+// DATA & STATE
+// ================================================================
+let DB = {}; // {id: player}
+let CUR = null;
+
+// Postes avants
+const AVANTS = ['Pilier G','Pilier D','Talonneur','2e ligne','3e ligne'];
+function isAv(poste){ return AVANTS.includes(poste); }
+function distCible(poste){ return isAv(poste) ? 20 : 30; }
+
+// ================================================================
+// CALCULS (reproduit les formules Excel en JS)
+// ================================================================
+function calcFVimb(f0, v0, poste){
+  if(!f0||!v0) return null;
+  const D = distCible(poste);
+  const Sfvopt = 1.1689 * Math.pow(f0*v0, 1/3) / Math.pow(D, 2/3);
+  const Sfv = f0 / v0;
+  return Math.round((Sfv / Sfvopt) * 100 * 10) / 10;
+}
+
+function fvProfil(fvimb){
+  if(fvimb === null) return 'Non testé';
+  if(fvimb >= 90 && fvimb <= 110) return 'Équilibré';
+  if(fvimb > 110) return 'Force-dominant';
+  return 'Vitesse-dominant';
+}
+
+function pmax(f0, v0){ return f0&&v0 ? Math.round(f0*v0/4*10)/10 : null; }
+
+function niveauRSI(rsi){
+  if(!rsi) return 'Non testé';
+  if(rsi >= 2) return 'Bon RSI (≥2.0)';
+  if(rsi >= 1.5) return 'Moyen RSI (1.5–2.0)';
+  return 'Faible RSI (<1.5)';
+}
+function niveauRSImod(rsimod){
+  if(!rsimod) return 'Non testé';
+  if(rsimod >= 0.5) return 'Bon RSImod (≥0.50)';
+  if(rsimod >= 0.38) return 'Moyen RSImod (0.38–0.50)';
+  return 'Faible RSImod (<0.38)';
+}
+function catTc(tc){
+  if(!tc) return 'Non mesuré';
+  if(tc <= 0.2) return 'Rapide (<200ms)';
+  if(tc <= 0.25) return 'Moyen (200–250ms)';
+  return 'Lent (>250ms) ⚠';
+}
+
+function prescSled(p){
+  const {f0,v0,masse,poste} = p;
+  if(!masse) return {txt:'Renseigner la masse',cls:'alert'};
+  const pmx = pmax(f0,v0);
+  const fvimb = calcFVimb(f0,v0,poste);
+  if(!f0||!v0) return {txt:`Modérée ${Math.round(masse*0.2)}–${Math.round(masse*0.5)}kg | ≤90m [FV non testé]`,cls:''};
+  if(pmx < 15) return {txt:`TRÈS LOURDE ${Math.round(masse*0.8)}–${Math.round(masse*1)}kg | ≤45m | ⚠ Pmax ${pmx} W/kg < 15 — BASE CRITIQUE`,cls:'crit'};
+  if(fvimb > 110 && pmx >= 18) return {txt:`LÉGÈRE ${Math.round(masse*0.1)}–${Math.round(masse*0.2)}kg | cible ${Math.round(masse*0.15)}kg | ≤135m | Force-dom + Pmax ok → ↑V0`,cls:'ok'};
+  if(fvimb > 110 && pmx < 18) return {txt:`LOURDE ${Math.round(masse*0.5)}–${Math.round(masse*0.8)}kg | cible ${Math.round(masse*0.65)}kg | ≤60m | Force-dom mais Pmax ${pmx}<18 → ↑F0`,cls:'alert'};
+  if(fvimb < 90) return {txt:`TRÈS LOURDE ${Math.round(masse*0.8)}–${Math.round(masse*1)}kg | ≤45m | Vitesse-dom → ↑F0`,cls:'alert'};
+  if(fvimb >= 90 && fvimb <= 110 && pmx >= 18) return {txt:`MODÉRÉE→LOURDE ${Math.round(masse*0.35)}–${Math.round(masse*0.65)}kg | cible ${Math.round(masse*0.5)}kg | ≤60m | Équilibré + Pmax ok`,cls:'ok'};
+  return {txt:`LOURDE ${Math.round(masse*0.5)}–${Math.round(masse*0.8)}kg | ≤60m | Équilibré + Pmax <18 → ↑Pmax`,cls:'alert'};
+}
+
+function prescPlio(p){
+  const {rsi,rsimod,tc} = p;
+  if(!rsi && !rsimod) return {txt:'Tester RSI DJ + Tc avant prescription plio',cls:'',niv:'—'};
+  if(tc && tc > 0.25) return {txt:`NIV.0 — Tc ${Math.round(tc*1000)}ms >250ms : Wall dribble + Ankling + CMJ | PAS de DJ`,cls:'alert',niv:'0'};
+  if(!rsi){
+    if(rsimod < 0.38) return {txt:'SSC lent faible : SJ + Excentrique + CMJ',cls:'',niv:'0'};
+    return {txt:'CMJ + SJ base SSC lent',cls:'',niv:'0'};
+  }
+  if(rsi < 1.5) return {txt:`NIV.1 — RSI ${rsi} : Bounds + CMJ + DJ 20cm | Tc cible <250ms`,cls:'',niv:'1'};
+  if(rsi < 2) return {txt:`NIV.2 — RSI ${rsi} : DJ 20–40cm + Hurdle hops | Tc cible <220ms`,cls:'',niv:'2'};
+  if(rsi >= 2 && tc && tc <= 0.2) return {txt:`NIV.3 MÉTHODE CHOC — RSI ${rsi} : DJ 75–80cm | 4×10 MAX | surface dure`,cls:'ok',niv:'3'};
+  return {txt:'NIV.3 potentiel — vérifier Tc <200ms avant DJ >75cm',cls:'',niv:'3?'};
+}
+
+function prescMuscu(p){
+  const {f0,v0,rsimod,poste} = p;
+  const fvimb = calcFVimb(f0,v0,poste);
+  const pmx = pmax(f0,v0);
+  if(!f0||!v0) return 'Squat + Hip Thrust 70–80% [FV non testé]';
+  if(pmx < 15) return 'Force max 80–90% 1RM | Base Pmax critique [Suchomel 2018]';
+  if(fvimb > 140 && pmx >= 22) return 'Balistique pur 20–35% | Vitesse barre maximale';
+  if(fvimb > 110 && pmx >= 18) return 'Balistique 30–40% | Force-dom Pmax ok';
+  if(fvimb > 110 && pmx < 18) return 'Force max 80–90% + Complexe | Force-dom Pmax insuff. [Lahti 2020]';
+  if(fvimb < 90) return 'Force max 85–95% 1RM | Vitesse-dom → ↑F0';
+  return 'Complexe Pmax 50–70% | Équilibré Pmax ok [Rodriguez-Rosell 2022]';
+}
+
+function prescSprint(p){
+  const {f0,v0,masse,poste} = p;
+  const fvimb = calcFVimb(f0,v0,poste);
+  const pmx = pmax(f0,v0);
+  if(!f0||!v0) return 'Sprint libre 0–30m + Sled standard [FV non testé]';
+  if(pmx < 15) return 'Sled très lourd + Hill sprint 0–15m | Pmax critique';
+  if(fvimb > 140 && pmx >= 22) return 'SURVITESSE — Sprint assisté −5 à −10% Vmax | Fly sprint 20–40m | PAS de sled [Myrvang 2024]';
+  if(fvimb > 110 && pmx >= 18) return `Sled léger ${Math.round(masse*0.15)}kg + Sprint assisté | Fly sprint 20–30m [Espasa 2025]`;
+  if(fvimb < 90) return `Sled lourd ${Math.round(masse*0.65)}kg + Hill sprint 0–20m [Morin 2017]`;
+  if(pmx >= 18) return `Sprint libre 0–30m + Sled modéré ${Math.round(masse*0.35)}kg [Rodriguez-Rosell 2022]`;
+  return `Sled lourd ${Math.round(masse*0.65)}kg + Hill sprint | Pmax insuffisante`;
+}
+
+function vigilance(p){
+  const {f0,v0,tc,poste} = p;
+  const pmx = pmax(f0,v0);
+  const fvimb = calcFVimb(f0,v0,poste);
+  if(tc && tc > 0.25) return {txt:`⚠ Tc ${Math.round(tc*1000)}ms > 250ms — INTERDIRE DJ`,cls:'crit'};
+  if(pmx && pmx < 15) return {txt:`⚠ Pmax ${pmx} W/kg < 15 — BASE CRITIQUE`,cls:'crit'};
+  if(!f0||!v0) return {txt:'FV non testé — compléter F0/V0',cls:'alert'};
+  if(fvimb > 140 && pmx >= 22) return {txt:`✅ Profil élite | Pmax ${pmx} W/kg | FVimb ${fvimb}% — Survitesse`,cls:'ok'};
+  if(fvimb > 110 && pmx >= 18) return {txt:`Force-dom + Pmax ${pmx} W/kg ≥18 → ↑V0 | Sled léger`,cls:''};
+  return {txt:`OK | Pmax ${pmx||'—'} W/kg | FVimb ${fvimb||'—'}% | Réévaluer 6–8 sem.`,cls:'ok'};
+}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function pg(name, el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  const tabs = document.querySelectorAll('.ntab');
+  const names = ['saisie','profil','equipe','import','refs'];
+  const idx = names.indexOf(name);
+  if(idx>=0) tabs[idx].classList.add('on');
+  if(name==='profil'){ fillProfilSel(); renderProfil(); }
+  if(name==='equipe'){ renderEquipe(); }
+}
+
+// ================================================================
+// SAVE / EDIT / DELETE
+// ================================================================
+function savePlayer(){
+  const nom = document.getElementById('f-nom').value.trim();
+  if(!nom){ alert('Nom requis.'); return; }
+  const id = CUR && P(CUR) && P(CUR).nom === nom ? CUR : 'p'+Date.now();
+  const p = {
+    id, nom,
+    poste: document.getElementById('f-poste').value,
+    taille: parseFloat(document.getElementById('f-taille').value)||null,
+    masse: parseFloat(document.getElementById('f-masse').value)||null,
+    forme: document.getElementById('f-forme').value||null,
+    rsi: parseFloat(document.getElementById('f-rsi').value)||null,
+    rsimod: parseFloat(document.getElementById('f-rsimod').value)||null,
+    tc: parseFloat(document.getElementById('f-tc').value)||null,
+    cmj: parseFloat(document.getElementById('f-cmj').value)||null,
+    sj: parseFloat(document.getElementById('f-sj').value)||null,
+    f0: parseFloat(document.getElementById('f-f0').value)||null,
+    v0: parseFloat(document.getElementById('f-v0').value)||null,
+    dateRsi: document.getElementById('f-date-rsi').value||null,
+    dateFv: document.getElementById('f-date-fv').value||null,
+  };
+  DB[id] = p; CUR = id;
+  renderTabs(); renderPreview();
+  fillProfilSel();
+  // Refresh profil page if it's displaying this player
+  const profilSel = document.getElementById('profil-sel');
+  if(profilSel) {
+    if(profilSel.value === id || !profilSel.value) {
+      profilSel.value = id;
+      renderProfil();
+    }
+  }
+  // Refresh equipe if visible
+  if(document.getElementById('pg-equipe').classList.contains('on')) renderEquipe();
+  const msg = document.getElementById('save-msg');
+  msg.style.display='inline'; setTimeout(()=>msg.style.display='none',2000);
+}
+
+function P(id){ return DB[id]; }
+
+function editCurrent(){
+  if(!CUR||!P(CUR)) return;
+  const p = P(CUR);
+  document.getElementById('f-nom').value = p.nom||'';
+  document.getElementById('f-poste').value = p.poste||'';
+  document.getElementById('f-taille').value = p.taille||'';
+  document.getElementById('f-masse').value = p.masse||'';
+  document.getElementById('f-forme').value = p.forme||'';
+  document.getElementById('f-rsi').value = p.rsi||'';
+  document.getElementById('f-rsimod').value = p.rsimod||'';
+  document.getElementById('f-tc').value = p.tc||'';
+  document.getElementById('f-cmj').value = p.cmj||'';
+  document.getElementById('f-sj').value = p.sj||'';
+  document.getElementById('f-f0').value = p.f0||'';
+  document.getElementById('f-v0').value = p.v0||'';
+  document.getElementById('f-date-rsi').value = p.dateRsi||'';
+  document.getElementById('f-date-fv').value = p.dateFv||'';
+  window.scrollTo(0,0);
+}
+
+function deleteCurrent(){
+  if(!CUR||!confirm('Supprimer ce joueur ?')) return;
+  delete DB[CUR];
+  const ids = Object.keys(DB);
+  CUR = ids.length ? ids[ids.length-1] : null;
+  renderTabs(); renderPreview(); fillProfilSel();
+}
+
+function clearForm(){
+  ['f-nom','f-taille','f-masse','f-rsi','f-rsimod','f-tc','f-cmj','f-sj','f-f0','f-v0','f-date-rsi','f-date-fv'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-poste').value='';
+  document.getElementById('f-forme').value='';
+}
+
+// ================================================================
+// RENDER TABS
+// ================================================================
+function renderTabs(){
+  const c = document.getElementById('ptabs'); c.innerHTML='';
+  const ab = document.getElementById('actbar');
+  Object.values(DB).forEach(p=>{
+    const t = document.createElement('div');
+    t.className = 'ptab'+(p.id===CUR?' on':'');
+    t.onclick = ()=>{ CUR=p.id; renderTabs(); renderPreview(); };
+    t.innerHTML = `<span>${p.nom}${p.poste?' <small style="opacity:.7">'+p.poste+'</small>':''}</span><span class="rm" onclick="CUR='${p.id}';deleteCurrent();event.stopPropagation()">✕</span>`;
+    c.appendChild(t);
+  });
+  ab.style.display = CUR&&P(CUR) ? 'flex' : 'none';
+}
+
+// ================================================================
+// PREVIEW (saisie page)
+// ================================================================
+function renderPreview(){
+  const con = document.getElementById('saisie-preview');
+  if(!CUR||!P(CUR)){ con.innerHTML='<div class="empty"><div class="ico">📋</div><p>Ajoutez un joueur pour commencer.</p></div>'; return; }
+  const p = P(CUR);
+  const fvimb = calcFVimb(p.f0,p.v0,p.poste);
+  const pmx = pmax(p.f0,p.v0);
+  const vig = vigilance(p);
+  con.innerHTML=`<div class="pform" style="background:var(--bg)">
+    <h3>${p.nom} — ${p.poste||'—'} ${p.forme?'<span class="pill pill-b">'+p.forme+'</span>':''} ${p.masse?'<span class="pill pill-gr">'+p.masse+'kg</span>':''}</h3>
+    ${vig.cls==='crit'?`<div class="alert-box">${vig.txt}</div>`:''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;font-size:12px;">
+      <div><b>FVimb</b><br><span class="mono" style="font-size:16px">${fvimb!==null?fvimb+'%':'NT'}</span><br><small>${fvProfil(fvimb)}</small></div>
+      <div><b>Pmax</b><br><span class="mono" style="font-size:16px">${pmx||'NT'}</span><br><small>W/kg</small></div>
+      <div><b>RSI</b><br><span class="mono" style="font-size:16px">${p.rsi||'NT'}</span><br><small>${niveauRSI(p.rsi)}</small></div>
+      <div><b>RSImod</b><br><span class="mono" style="font-size:16px">${p.rsimod||'NT'}</span><br><small>${niveauRSImod(p.rsimod)}</small></div>
+      <div><b>Tc</b><br><span class="mono" style="font-size:16px">${p.tc?Math.round(p.tc*1000)+'ms':'NT'}</span><br><small>${catTc(p.tc)}</small></div>
+      <div><b>CMJ / SJ</b><br><span class="mono" style="font-size:16px">${p.cmj||'—'} / ${p.sj||'—'}</span><br><small>cm</small></div>
+    </div>
+  </div>`;
+}
+
+// ================================================================
+// RENDER PROFIL
+// ================================================================
+function fillProfilSel(){
+  const sel = document.getElementById('profil-sel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Sélectionner —</option>';
+  Object.values(DB).forEach(p=>{
+    const o = document.createElement('option');
+    o.value=p.id; o.textContent=p.nom+(p.poste?' · '+p.poste:'');
+    sel.appendChild(o);
+  });
+  if(cur&&DB[cur]) sel.value=cur;
+  else if(CUR&&DB[CUR]) sel.value=CUR;
+}
+
+function renderProfil(){
+  const pid = document.getElementById('profil-sel').value;
+  const con = document.getElementById('profil-container');
+  if(!pid||!DB[pid]){ con.innerHTML='<div class="empty"><div class="ico">📊</div><p>Sélectionnez un joueur.</p></div>'; return; }
+  const p = DB[pid];
+  const fvimb = calcFVimb(p.f0,p.v0,p.poste);
+  const pmx = pmax(p.f0,p.v0);
+  const vig = vigilance(p);
+  const sled = prescSled(p);
+  const plio = prescPlio(p);
+  const muscu = prescMuscu(p);
+  const sprint = prescSprint(p);
+  const fvProf = fvProfil(fvimb);
+
+  // Couleur FVimb
+  function fvColor(v){ if(!v)return'var(--text-mid)'; if(v>=90&&v<=110)return'var(--green)'; if(v>110)return'var(--blue)'; return'var(--orange)'; }
+
+  let h = ``;
+
+  // HEADER
+  h += `<div class="pform" style="margin-bottom:14px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h2 style="font-size:20px;font-weight:600">${p.nom}</h2>
+        <p style="color:var(--text-mid);font-size:13px;margin-top:3px">${p.poste||'—'} ${p.taille?'· '+p.taille+'m':''} ${p.masse?'· '+p.masse+'kg':''} ${p.forme?'· <strong>'+p.forme+'</strong>':''}</p>
+        <p style="font-size:11px;color:var(--text-light);margin-top:4px">RSI : ${p.dateRsi||'—'} · F-V : ${p.dateFv||'—'}</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="text-align:center;padding:8px 14px;border-radius:4px;background:var(--bg);border:1px solid var(--border)">
+          <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${fvColor(fvimb)}">${fvimb!==null?fvimb+'%':'NT'}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mid);margin-top:2px">FVimb%</div>
+          <div style="font-size:11px;color:var(--text-mid)">${fvProf}</div>
+        </div>
+        <div style="text-align:center;padding:8px 14px;border-radius:4px;background:var(--bg);border:1px solid var(--border)">
+          <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${pmx&&pmx>=18?'var(--green)':pmx&&pmx<15?'var(--red)':'var(--orange)'}">${pmx||'NT'}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mid);margin-top:2px">Pmax (W/kg)</div>
+        </div>
+        ${vig.cls==='crit'?`<div style="padding:8px 14px;border-radius:4px;background:var(--red-light);border:1px solid var(--red);font-size:11px;color:var(--red);max-width:200px">${vig.txt}</div>`:`<div style="padding:8px 14px;border-radius:4px;background:var(--green-light);border:1px solid var(--green);font-size:11px;color:var(--green);max-width:200px">${vig.txt}</div>`}
+      </div>
+    </div>
+  </div>`;
+
+  // GRID PROFIL
+  h += `<div class="profil-grid">`;
+
+  // Card SSC
+  h += `<div class="pcard">
+    <h3>Profil SSC — Élasticité</h3>
+    <div class="metric"><span class="mlabel">RSI (Drop Jump)</span><span class="mval ${!p.rsi?'':p.rsi>=2?'hi':p.rsi>=1.5?'':' lo'}">${p.rsi||'NT'}</span></div>
+    <div class="metric"><span class="mlabel">Niveau RSI</span><span style="font-size:11px">${niveauRSI(p.rsi)}</span></div>
+    <div class="metric"><span class="mlabel">RSImod (CMJ)</span><span class="mval ${!p.rsimod?'':p.rsimod>=0.5?'hi':p.rsimod>=0.38?'':'lo'}">${p.rsimod||'NT'}</span></div>
+    <div class="metric"><span class="mlabel">Niveau RSImod</span><span style="font-size:11px">${niveauRSImod(p.rsimod)}</span></div>
+    <div class="metric"><span class="mlabel">Tc (ms)</span><span class="mval ${!p.tc?'':p.tc<=0.2?'hi':p.tc<=0.25?'':'crit'}">${p.tc?Math.round(p.tc*1000)+'ms':'NT'}</span></div>
+    <div class="metric"><span class="mlabel">Catégorie Tc</span><span style="font-size:11px">${catTc(p.tc)}</span></div>
+    <div class="metric"><span class="mlabel">CMJ / SJ (cm)</span><span class="mval">${p.cmj||'—'} / ${p.sj||'—'}</span></div>
+    ${p.cmj&&p.sj?`<div class="metric"><span class="mlabel">CMJ–SJ (élasticité)</span><span class="mval ${p.cmj-p.sj>=5?'hi':'lo'}">${Math.round((p.cmj-p.sj)*10)/10} cm</span></div>`:''}
+  </div>`;
+
+  // Card FV
+  h += `<div class="pcard ${fvimb&&(fvimb<90||fvimb>110)?'alert':'ok'}">
+    <h3>Profil Force-Vitesse Horizontal</h3>
+    <div class="metric"><span class="mlabel">F0 (N/kg)</span><span class="mval">${p.f0||'NT'}</span></div>
+    <div class="metric"><span class="mlabel">V0 (m/s)</span><span class="mval">${p.v0||'NT'}</span></div>
+    <div class="metric"><span class="mlabel">Pmax (W/kg)</span><span class="mval ${pmx&&pmx>=18?'hi':pmx&&pmx<15?'crit':'lo'}">${pmx||'NT'}</span></div>
+    <div class="metric"><span class="mlabel">FVimb%</span><span class="mval" style="color:${fvColor(fvimb)}">${fvimb!==null?fvimb+'%':'NT'}</span></div>
+    <div class="metric"><span class="mlabel">Profil FV</span><span style="font-size:11px;font-weight:600">${fvProf}</span></div>
+    <div class="metric"><span class="mlabel">Distance cible</span><span class="mval">${distCible(p.poste)}m</span></div>
+    ${fvimb?`<div style="margin-top:8px;font-size:11px;color:var(--text-mid)">
+      Sfvopt = 1.1689 × (F0×V0)^1/3 / D^2/3<br>
+      ${fvimb>=90&&fvimb<=110?'<span style="color:var(--green)">✅ Équilibré — priorité Pmax</span>':fvimb>110?'<span style="color:var(--blue)">Force-dominant +'+Math.round(fvimb-100)+'% → développer V0</span>':'<span style="color:var(--orange)">Vitesse-dominant −'+Math.round(100-fvimb)+'% → développer F0</span>'}
+    </div>`:''}
+  </div>`;
+
+  // Card prescriptions
+  h += `<div class="pcard">
+    <h3>Prescriptions</h3>
+    <div class="prescr-block ${sled.cls}"><h4>🛷 Sled</h4><p>${sled.txt}</p></div>
+    <div class="prescr-block ${plio.cls}"><h4>🦘 Pliométrie — Niv.${plio.niv}</h4><p>${plio.txt}</p></div>
+    <div class="prescr-block"><h4>🏋️ Musculation</h4><p>${muscu}</p></div>
+    <div class="prescr-block"><h4>💨 Sprint</h4><p>${sprint}</p></div>
+  </div>`;
+
+  h += `</div>`; // /profil-grid
+
+  // RADAR
+  h += `<div class="pcard" style="margin-top:14px;">
+    <h3>Radar neuromusculaire</h3>
+    <div class="radar-wrap"><canvas id="profil-radar" width="340" height="340"></canvas></div>
+  </div>`;
+
+  // Destroy existing radar before rebuilding DOM
+  if(window._pr){ window._pr.destroy(); window._pr=null; }
+  con.innerHTML = h;
+
+  // Draw radar
+  const maxRSI=3,maxRSImod=0.8,maxTc_inv=1,maxCMJ=60,maxPmax=30,maxFVimb_eq=1;
+  const labels=['RSI','RSImod','Tc (inv.)','CMJ','Pmax','Équilibre FV'];
+  const rsiN = p.rsi ? Math.min(p.rsi/maxRSI,1)*10 : 0;
+  const rsimodN = p.rsimod ? Math.min(p.rsimod/maxRSImod,1)*10 : 0;
+  const tcN = p.tc ? Math.max(0,(1-(p.tc-0.15)/(0.35))*10) : 0;
+  const cmjN = p.cmj ? Math.min(p.cmj/maxCMJ,1)*10 : 0;
+  const pmaxN = pmx ? Math.min(pmx/maxPmax,1)*10 : 0;
+  const fvN = fvimb ? Math.max(0,(1-Math.abs(fvimb-100)/100)*10) : 0;
+
+  if(window._pr){ window._pr.destroy(); window._pr=null; }
+  window._pr = new Chart(document.getElementById('profil-radar'),{
+    type:'radar',
+    data:{labels,datasets:[{label:p.nom,data:[rsiN,rsimodN,tcN,cmjN,pmaxN,fvN],
+      backgroundColor:'rgba(26,58,107,0.15)',borderColor:'rgba(26,58,107,0.85)',
+      borderWidth:2,pointBackgroundColor:'rgba(26,58,107,1)',pointBorderColor:'#fff',pointRadius:4}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}/10`}}},
+      scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:9,family:'IBM Plex Mono'},color:'#9A9A90',backdropColor:'transparent'},
+        pointLabels:{font:{size:10,family:'IBM Plex Sans',weight:'500'},color:'#1A1A16'},
+        grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+}
+
+// ================================================================
+// RENDER EQUIPE
+// ================================================================
+function renderEquipe(){
+  const con = document.getElementById('equipe-container');
+  const tc = document.getElementById('team-count');
+  const players = Object.values(DB);
+  tc.textContent = players.length + ' joueur'+(players.length>1?'s':'');
+  if(!players.length){ con.innerHTML='<div class="empty"><div class="ico">👥</div><p>Aucun joueur.</p></div>'; return; }
+
+  function pillFvimb(v){
+    if(!v) return '<span class="pill pill-gr">NT</span>';
+    if(v>=90&&v<=110) return `<span class="pill pill-g">${v}% Éq.</span>`;
+    if(v>110) return `<span class="pill pill-b">${v}% F-dom</span>`;
+    return `<span class="pill pill-o">${v}% V-dom</span>`;
+  }
+  function pillRSI(r){
+    if(!r) return '<span class="pill pill-gr">NT</span>';
+    if(r>=2) return `<span class="pill pill-g">${r}</span>`;
+    if(r>=1.5) return `<span class="pill pill-y">${r}</span>`;
+    return `<span class="pill pill-o">${r}</span>`;
+  }
+  function pillTc(tc){
+    if(!tc) return '<span class="pill pill-gr">NT</span>';
+    const ms=Math.round(tc*1000);
+    if(tc<=0.2) return `<span class="pill pill-g">${ms}ms</span>`;
+    if(tc<=0.25) return `<span class="pill pill-y">${ms}ms</span>`;
+    return `<span class="pill pill-r">${ms}ms ⚠</span>`;
+  }
+
+  let h=`<div style="overflow-x:auto"><table class="tt"><thead><tr>
+    <th>Joueur</th><th>Poste</th>
+    <th class="c">FVimb%</th><th class="c">Pmax</th>
+    <th class="c">RSI</th><th class="c">RSImod</th><th class="c">Tc</th>
+    <th class="c">CMJ</th><th class="c">Forme</th>
+    <th>Sled prioritaire</th><th>Plio niv.</th><th>Vigilance</th>
+  </tr></thead><tbody>`;
+
+  players.forEach(p=>{
+    const fvimb=calcFVimb(p.f0,p.v0,p.poste);
+    const pmx=pmax(p.f0,p.v0);
+    const sled=prescSled(p);
+    const plio=prescPlio(p);
+    const vig=vigilance(p);
+    h+=`<tr onclick="pg('profil',document.querySelector('.ntab:nth-child(2)'));document.getElementById('profil-sel').value='${p.id}';renderProfil()">
+      <td><strong>${p.nom}</strong></td>
+      <td>${p.poste||'—'}</td>
+      <td class="c">${pillFvimb(fvimb)}</td>
+      <td class="c mono">${pmx?pmx+' W/kg':'NT'}</td>
+      <td class="c">${pillRSI(p.rsi)}</td>
+      <td class="c"><span class="mono">${p.rsimod||'NT'}</span></td>
+      <td class="c">${pillTc(p.tc)}</td>
+      <td class="c mono">${p.cmj||'—'}</td>
+      <td class="c">${p.forme?'<span class="pill pill-b">'+p.forme+'</span>':'—'}</td>
+      <td style="font-size:11px">${sled.txt.substring(0,60)}${sled.txt.length>60?'…':''}</td>
+      <td class="c"><span class="pill ${plio.cls==='ok'?'pill-g':plio.cls==='crit'?'pill-r':'pill-y'}">Niv.${plio.niv}</span></td>
+      <td style="font-size:11px;color:${vig.cls==='crit'?'var(--red)':vig.cls==='ok'?'var(--green)':'var(--text-mid)'}">${vig.txt.substring(0,55)}…</td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  con.innerHTML=h;
+}
+
+// ================================================================
+// IMPORT CSV
+// ================================================================
+function dragOver(e){ e.preventDefault(); document.getElementById('drop-zone').classList.add('drag'); }
+function dragLeave(e){ document.getElementById('drop-zone').classList.remove('drag'); }
+function dropFile(e){
+  e.preventDefault(); dragLeave(e);
+  const file = e.dataTransfer.files[0];
+  if(file) processCSV(file);
+}
+function importCSV(input){ if(input.files[0]) processCSV(input.files[0]); }
+
+function processCSV(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const lines = e.target.result.split('\n').filter(l=>l.trim());
+      const headers = lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
+      let count=0;
+      for(let i=1;i<lines.length;i++){
+        const vals = lines[i].split(',').map(v=>v.replace(/"/g,'').trim());
+        if(!vals[0]) continue;
+        const nom = vals[headers.indexOf('NOM PRÉNOM')]||vals[0];
+        if(!nom) continue;
+        const id='imp'+Date.now()+i;
+        const p={id,nom,
+          poste: vals[headers.indexOf('POSTE')]||'',
+          rsi: parseFloat(vals[headers.indexOf('RSI (DJ)')])||null,
+          rsimod: parseFloat(vals[headers.indexOf('RSImod (CMJ)')])||null,
+          tc: parseFloat(vals[headers.indexOf('Tc (s)')])||null,
+          cmj: parseFloat(vals[headers.indexOf('CMJ (cm)')])||null,
+          sj: parseFloat(vals[headers.indexOf('SJ (cm)')])||null,
+          f0: parseFloat(vals[headers.indexOf('F0 (N/kg)')])||null,
+          v0: parseFloat(vals[headers.indexOf('V0 (m/s)')])||null,
+          dateRsi: vals[headers.indexOf('Date RSI')]||null,
+          dateFv: vals[headers.indexOf('Date F-V')]||null,
+          forme: vals[headers.indexOf('Forme')]||null,
+          taille: parseFloat(vals[headers.indexOf('Taille (m)')])||null,
+          masse: parseFloat(vals[headers.indexOf('Masse (kg)')])||null,
+        };
+        DB[id]=p; count++;
+      }
+      CUR = Object.keys(DB)[Object.keys(DB).length-1];
+      renderTabs(); fillProfilSel();
+      document.getElementById('import-msg').innerHTML=`<span style="color:var(--green)">✓ ${count} joueur(s) importé(s).</span>`;
+    }catch(err){
+      document.getElementById('import-msg').innerHTML=`<span style="color:var(--red)">Erreur : ${err.message}</span>`;
+    }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+// ================================================================
+// EXPORT CSV
+// ================================================================
+function dlCSV(content, fname){
+  const blob = new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=fname; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportSaisieCSV(){
+  const H = ['NOM PRÉNOM','POSTE','RSI (DJ)','RSImod (CMJ)','Tc (s)','CMJ (cm)','SJ (cm)','F0 (N/kg)','V0 (m/s)','Date RSI','Date F-V','Forme','Taille (m)','Masse (kg)'];
+  const rows = [H.map(h=>'"'+h+'"').join(',')];
+  Object.values(DB).forEach(p=>{
+    rows.push([
+      '"'+p.nom+'"','"'+(p.poste||'')+'"',p.rsi||'',p.rsimod||'',p.tc||'',p.cmj||'',p.sj||'',
+      p.f0||'',p.v0||'','"'+(p.dateRsi||'')+'"','"'+(p.dateFv||'')+'"','"'+(p.forme||'')+'"',
+      p.taille||'',p.masse||''
+    ].join(','));
+  });
+  dlCSV(rows.join('\n'),'saisie_rugby_'+new Date().toISOString().split('T')[0]+'.csv');
+}
+
+function exportTeamCSV(){
+  const H = ['NOM','POSTE','FVimb%','Profil FV','Pmax (W/kg)','RSI','Niveau RSI','RSImod','Niveau RSImod','Tc (ms)','Cat Tc','CMJ','SJ','Forme','Sled prioritaire','Plio niveau','Muscu','Sprint','Vigilance'];
+  const rows = [H.map(h=>'"'+h+'"').join(',')];
+  Object.values(DB).forEach(p=>{
+    const fv=calcFVimb(p.f0,p.v0,p.poste);
+    const pmx=pmax(p.f0,p.v0);
+    const sled=prescSled(p);
+    const plio=prescPlio(p);
+    const vig=vigilance(p);
+    rows.push([
+      '"'+p.nom+'"','"'+(p.poste||'')+'"',fv||'NT','"'+fvProfil(fv)+'"',pmx||'NT',
+      p.rsi||'NT','"'+niveauRSI(p.rsi)+'"',p.rsimod||'NT','"'+niveauRSImod(p.rsimod)+'"',
+      p.tc?Math.round(p.tc*1000):'NT','"'+catTc(p.tc)+'"',
+      p.cmj||'',p.sj||'','"'+(p.forme||'')+'"',
+      '"'+sled.txt+'"','"Niv.'+plio.niv+' — '+plio.txt+'"',
+      '"'+prescMuscu(p)+'"','"'+prescSprint(p)+'"','"'+vig.txt+'"'
+    ].join(','));
+  });
+  dlCSV(rows.join('\n'),'equipe_rugby_'+new Date().toISOString().split('T')[0]+'.csv');
+}
+
+function exportAllCSV(){ exportTeamCSV(); }
+
+function exportProfilCSV(){
+  const pid = document.getElementById('profil-sel').value;
+  if(!pid||!DB[pid]) return;
+  const p=DB[pid];
+  const fv=calcFVimb(p.f0,p.v0,p.poste);
+  const pmx=pmax(p.f0,p.v0);
+  const sled=prescSled(p);
+  const plio=prescPlio(p);
+  const L=[
+    '"FICHE INDIVIDUELLE — PROFILAGE NEUROMUSCULAIRE RUGBY"',
+    '"Joueur","'+p.nom+'"','"Poste","'+(p.poste||'')+'"',
+    '"Taille","'+(p.taille||'')+' m"','"Masse","'+(p.masse||'')+' kg"','"Forme","'+(p.forme||'')+'"',
+    '"Date RSI","'+(p.dateRsi||'')+'"','"Date FV","'+(p.dateFv||'')+'"','',
+    '"=== DONNÉES TERRAIN ==="',
+    '"RSI (DJ)","'+(p.rsi||'NT')+'"','"RSImod (CMJ)","'+(p.rsimod||'NT')+'"',
+    '"Tc (s)","'+(p.tc||'NT')+'"','"CMJ (cm)","'+(p.cmj||'NT')+'"','"SJ (cm)","'+(p.sj||'NT')+'"',
+    '"F0 (N/kg)","'+(p.f0||'NT')+'"','"V0 (m/s)","'+(p.v0||'NT')+'"','',
+    '"=== PROFIL CALCULÉ ==="',
+    '"FVimb%","'+(fv||'NT')+'"','"Profil FV","'+fvProfil(fv)+'"','"Pmax (W/kg)","'+(pmx||'NT')+'"',
+    '"Niveau RSI","'+niveauRSI(p.rsi)+'"','"Niveau RSImod","'+niveauRSImod(p.rsimod)+'"','"Cat Tc","'+catTc(p.tc)+'"','',
+    '"=== PRESCRIPTIONS ==="',
+    '"Sled","'+sled.txt+'"','"Pliométrie","Niv.'+plio.niv+' — '+plio.txt+'"',
+    '"Musculation","'+prescMuscu(p)+'"','"Sprint","'+prescSprint(p)+'"',
+    '"Vigilance","'+vigilance(p).txt+'"',
+  ];
+  dlCSV(L.join('\n'),'profil_'+p.nom.replace(/\s+/g,'_')+'_'+new Date().toISOString().split('T')[0]+'.csv');
+}
+
+// ================================================================
+// DEMO DATA (vos vrais joueurs)
+// ================================================================
+function loadDemo(){
+  if(!confirm('Charger la simulation (30 joueurs — noms Équipe de France) ?')) return;
+  DB={};
+  const demo=[
+    // PILIERS GAUCHE
+    {nom:'BAILLE Cyril',poste:'Pilier G',taille:1.84,masse:122,forme:'Très bon',rsi:1.0,rsimod:0.28,tc:0.29,cmj:28,sj:22,f0:6.8,v0:7.2,dateRsi:'10/09/2024',dateFv:'10/09/2024'},
+    {nom:'TUILAGI Posolo',poste:'Pilier G',taille:1.83,masse:125,forme:'Bon',rsi:0.9,rsimod:0.25,tc:0.31,cmj:26,sj:20,f0:null,v0:null,dateRsi:'10/09/2024',dateFv:null},
+    // TALONNEURS
+    {nom:'MARCHAND Julien',poste:'Talonneur',taille:1.76,masse:105,forme:'Excellent',rsi:1.8,rsimod:0.46,tc:0.21,cmj:40,sj:33,f0:8.2,v0:8.8,dateRsi:'10/09/2024',dateFv:'10/09/2024'},
+    {nom:'BOURGARIT Pierre',poste:'Talonneur',taille:1.78,masse:108,forme:'Très bon',rsi:1.6,rsimod:0.42,tc:0.22,cmj:38,sj:31,f0:7.9,v0:8.4,dateRsi:'10/09/2024',dateFv:'10/09/2024'},
+    // PILIERS DROIT
+    {nom:'ATONIO Uini',poste:'Pilier D',taille:1.88,masse:135,forme:'Bon',rsi:0.8,rsimod:0.22,tc:0.32,cmj:24,sj:18,f0:6.5,v0:7.0,dateRsi:'10/09/2024',dateFv:'10/09/2024'},
+    {nom:'BAMBA Sipili',poste:'Pilier D',taille:1.85,masse:128,forme:'Bon',rsi:0.95,rsimod:0.26,tc:0.30,cmj:27,sj:21,f0:null,v0:null,dateRsi:'10/09/2024',dateFv:null},
+    // 2e LIGNES
+    {nom:'TAOFIFENUA Romain',poste:'2e ligne',taille:2.04,masse:122,forme:'Très bon',rsi:1.4,rsimod:0.37,tc:0.24,cmj:35,sj:28,f0:7.6,v0:8.1,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'AURADOU Hugo',poste:'2e ligne',taille:2.06,masse:115,forme:'Très bon',rsi:1.6,rsimod:0.41,tc:0.23,cmj:37,sj:30,f0:7.8,v0:8.5,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'WOKI Cameron',poste:'2e ligne',taille:2.03,masse:118,forme:'Excellent',rsi:1.7,rsimod:0.44,tc:0.22,cmj:39,sj:32,f0:8.0,v0:8.7,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // 3e LIGNES
+    {nom:'ALLDRITT Gregory',poste:'3e ligne',taille:1.95,masse:112,forme:'Excellent',rsi:2.1,rsimod:0.52,tc:0.20,cmj:44,sj:36,f0:8.6,v0:9.2,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'JELONCH Anthony',poste:'3e ligne',taille:1.90,masse:108,forme:'Très bon',rsi:2.0,rsimod:0.50,tc:0.20,cmj:43,sj:35,f0:8.4,v0:9.0,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'CRETIN Dylan',poste:'3e ligne',taille:1.91,masse:106,forme:'Bon',rsi:1.9,rsimod:0.48,tc:0.21,cmj:41,sj:33,f0:8.1,v0:8.8,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'CROS François',poste:'3e ligne',taille:1.90,masse:104,forme:'Très bon',rsi:2.2,rsimod:0.53,tc:0.19,cmj:45,sj:37,f0:8.5,v0:9.3,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // DEMIS MELEE
+    {nom:'COUILLOUD Baptiste',poste:'Demi',taille:1.74,masse:85,forme:'Excellent',rsi:2.4,rsimod:0.56,tc:0.18,cmj:46,sj:38,f0:8.7,v0:9.8,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'DUPONT Antoine',poste:'Demi',taille:1.74,masse:82,forme:'Excellent',rsi:2.6,rsimod:0.60,tc:0.17,cmj:49,sj:41,f0:9.1,v0:10.4,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // OUVREURS
+    {nom:'NTAMACK Romain',poste:'Ouvreur',taille:1.82,masse:88,forme:'Excellent',rsi:2.3,rsimod:0.55,tc:0.18,cmj:46,sj:38,f0:8.8,v0:9.9,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'JALIBERT Matthieu',poste:'Ouvreur',taille:1.84,masse:90,forme:'Très bon',rsi:2.2,rsimod:0.53,tc:0.19,cmj:44,sj:36,f0:8.6,v0:9.7,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // CENTRES
+    {nom:'FICKOU Gaël',poste:'Centre',taille:1.86,masse:96,forme:'Excellent',rsi:2.3,rsimod:0.54,tc:0.18,cmj:46,sj:38,f0:8.9,v0:9.8,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'MOEFANA Yoram',poste:'Centre',taille:1.87,masse:100,forme:'Très bon',rsi:2.1,rsimod:0.51,tc:0.20,cmj:43,sj:35,f0:8.5,v0:9.4,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'BARASSI Pierre-Louis',poste:'Centre',taille:1.84,masse:95,forme:'Bon',rsi:2.0,rsimod:0.49,tc:0.20,cmj:41,sj:33,f0:null,v0:null,dateRsi:'15/11/2024',dateFv:null},
+    {nom:'SEUTENI Ulupano',poste:'Centre',taille:1.85,masse:98,forme:'Bon',rsi:1.9,rsimod:0.47,tc:0.21,cmj:40,sj:32,f0:8.3,v0:9.1,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // AILIERS
+    {nom:'PENAUD Damian',poste:'Ailier',taille:1.89,masse:95,forme:'Excellent',rsi:2.6,rsimod:0.60,tc:0.17,cmj:50,sj:42,f0:9.0,v0:10.5,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'BIELLE-BIARREY Louis',poste:'Ailier',taille:1.85,masse:91,forme:'Excellent',rsi:2.7,rsimod:0.62,tc:0.16,cmj:52,sj:44,f0:9.2,v0:10.6,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'ATTISSOGBE Théo',poste:'Ailier',taille:1.80,masse:87,forme:'Très bon',rsi:2.5,rsimod:0.58,tc:0.17,cmj:49,sj:41,f0:8.9,v0:10.2,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'HIRIGOYEN Mathieu',poste:'Ailier',taille:1.79,masse:85,forme:'Très bon',rsi:2.4,rsimod:0.56,tc:0.18,cmj:47,sj:39,f0:8.8,v0:10.0,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // ARRIERES
+    {nom:'RAMOS Thomas',poste:'Arrière',taille:1.83,masse:89,forme:'Excellent',rsi:2.5,rsimod:0.59,tc:0.17,cmj:50,sj:42,f0:9.0,v0:10.3,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'JAMINET Melvyn',poste:'Arrière',taille:1.81,masse:86,forme:'Très bon',rsi:2.4,rsimod:0.57,tc:0.18,cmj:48,sj:40,f0:8.8,v0:10.1,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    {nom:'DULIN Brice',poste:'Arrière',taille:1.84,masse:88,forme:'Bon',rsi:2.2,rsimod:0.53,tc:0.19,cmj:45,sj:37,f0:8.6,v0:9.8,dateRsi:'15/11/2024',dateFv:'15/11/2024'},
+    // PROFILS ATYPIQUES (données partielles pour simuler la réalité terrain)
+    {nom:'VERGNES-TAILLEFER Ethan',poste:'3e ligne',taille:1.93,masse:110,forme:'Moyen',rsi:null,rsimod:null,tc:null,cmj:null,sj:null,f0:8.2,v0:9.0,dateRsi:null,dateFv:'15/11/2024'},
+    {nom:'GERACI Killian',poste:'Talonneur',taille:1.78,masse:107,forme:'Bon',rsi:1.5,rsimod:0.40,tc:0.23,cmj:37,sj:30,f0:null,v0:null,dateRsi:'10/09/2024',dateFv:null},
+  ];
+  demo.forEach((d,i)=>{ const id='d'+i; DB[id]={id,...d}; });
+  CUR=Object.keys(DB)[0];
+  renderTabs(); renderPreview(); fillProfilSel();
+}
+
+// ================================================================
+// SIMULATION 30 JOUEURS
+// ================================================================
+function rnd(a,b){ return Math.round((Math.random()*(b-a)+a)*100)/100; }
+function rndI(a,b){ return Math.round(Math.random()*(b-a)+a); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+const SIM_PROFILES = [
+  // Piliers
+  {nom:'GARCIA Pablo',     poste:'Pilier G', masse:[105,125], taille:[1.75,1.82], rsi:[0.8,1.4],  rsimod:[0.25,0.38], tc:[0.22,0.32], cmj:[26,36], sj:[20,30], f0:[6.5,8.0], v0:[6.5,7.8]},
+  {nom:'MARTIN Théo',      poste:'Pilier D', masse:[108,128], taille:[1.76,1.84], rsi:[0.9,1.5],  rsimod:[0.26,0.40], tc:[0.21,0.31], cmj:[27,37], sj:[21,31], f0:[6.8,8.2], v0:[6.8,8.0]},
+  {nom:'SILVA Marcus',     poste:'Pilier G', masse:[110,130], taille:[1.74,1.82], rsi:[0.7,1.3],  rsimod:[0.24,0.36], tc:[0.23,0.33], cmj:[25,35], sj:[19,29], f0:[6.4,7.8], v0:[6.4,7.6]},
+  {nom:'DUPONT Enzo',      poste:'Pilier D', masse:[106,122], taille:[1.77,1.83], rsi:[1.0,1.6],  rsimod:[0.28,0.42], tc:[0.20,0.30], cmj:[28,38], sj:[22,32], f0:[7.0,8.4], v0:[7.0,8.2]},
+  // Talonneurs
+  {nom:'RODRIGUEZ Carlos', poste:'Talonneur',masse:[100,118], taille:[1.76,1.82], rsi:[1.2,1.8],  rsimod:[0.32,0.46], tc:[0.19,0.28], cmj:[32,42], sj:[26,36], f0:[7.2,8.6], v0:[7.5,8.8]},
+  {nom:'LEBRUN Antoine',   poste:'Talonneur',masse:[102,116], taille:[1.77,1.81], rsi:[1.3,1.9],  rsimod:[0.33,0.48], tc:[0.18,0.27], cmj:[33,43], sj:[27,37], f0:[7.4,8.8], v0:[7.6,9.0]},
+  // Deuxièmes lignes
+  {nom:'JOHNSON Ryan',     poste:'2e ligne', masse:[112,128], taille:[1.97,2.06], rsi:[1.1,1.7],  rsimod:[0.30,0.44], tc:[0.20,0.29], cmj:[30,40], sj:[24,34], f0:[7.0,8.4], v0:[7.2,8.6]},
+  {nom:'WILLIAMS Tom',     poste:'2e ligne', masse:[110,126], taille:[1.96,2.04], rsi:[1.0,1.6],  rsimod:[0.28,0.42], tc:[0.21,0.30], cmj:[29,39], sj:[23,33], f0:[6.9,8.2], v0:[7.0,8.4]},
+  {nom:'MBOKANI Seth',     poste:'2e ligne', masse:[108,124], taille:[1.95,2.03], rsi:[1.2,1.8],  rsimod:[0.31,0.45], tc:[0.20,0.28], cmj:[31,41], sj:[25,35], f0:[7.1,8.5], v0:[7.3,8.7]},
+  // Troisièmes lignes
+  {nom:'ROUSSEAU Damien',  poste:'3e ligne', masse:[100,114], taille:[1.86,1.94], rsi:[1.5,2.2],  rsimod:[0.40,0.55], tc:[0.18,0.25], cmj:[36,46], sj:[30,40], f0:[7.8,9.2], v0:[8.5,9.8]},
+  {nom:'COSTA Renato',     poste:'3e ligne', masse:[98,112],  taille:[1.85,1.93], rsi:[1.6,2.3],  rsimod:[0.42,0.56], tc:[0.17,0.24], cmj:[37,47], sj:[31,41], f0:[8.0,9.4], v0:[8.6,10.0]},
+  {nom:'FLANAGAN Sean',    poste:'3e ligne', masse:[96,110],  taille:[1.84,1.92], rsi:[1.8,2.5],  rsimod:[0.45,0.58], tc:[0.16,0.22], cmj:[39,49], sj:[33,43], f0:[8.2,9.6], v0:[8.8,10.2]},
+  {nom:'LABUSCHAGNE P.',   poste:'3e ligne', masse:[102,116], taille:[1.87,1.95], rsi:[1.4,2.1],  rsimod:[0.38,0.52], tc:[0.19,0.26], cmj:[34,44], sj:[28,38], f0:[7.6,9.0], v0:[8.2,9.5]},
+  // Demis de mêlée
+  {nom:'PETERSEN Luke',    poste:'Demi',     masse:[80,92],   taille:[1.72,1.78], rsi:[2.0,2.8],  rsimod:[0.50,0.65], tc:[0.15,0.21], cmj:[41,52], sj:[35,45], f0:[8.2,9.5], v0:[9.2,10.8]},
+  {nom:'HERNANDEZ Marc',   poste:'Demi',     masse:[78,90],   taille:[1.71,1.77], rsi:[1.8,2.5],  rsimod:[0.47,0.62], tc:[0.16,0.22], cmj:[39,50], sj:[33,43], f0:[8.0,9.2], v0:[9.0,10.5]},
+  // Ouvreurs
+  {nom:'OLIVIER Pierre',   poste:'Ouvreur',  masse:[85,98],   taille:[1.80,1.87], rsi:[1.9,2.6],  rsimod:[0.48,0.63], tc:[0.16,0.22], cmj:[40,51], sj:[34,44], f0:[8.1,9.4], v0:[9.0,10.6]},
+  {nom:'SMITH Bradley',    poste:'Ouvreur',  masse:[83,96],   taille:[1.79,1.86], rsi:[2.0,2.7],  rsimod:[0.50,0.64], tc:[0.15,0.21], cmj:[41,52], sj:[35,45], f0:[8.3,9.6], v0:[9.2,10.8]},
+  // Centres
+  {nom:'TUILAGI Semi',     poste:'Centre',   masse:[100,116], taille:[1.86,1.94], rsi:[1.8,2.5],  rsimod:[0.45,0.60], tc:[0.17,0.23], cmj:[37,48], sj:[31,41], f0:[7.9,9.3], v0:[8.8,10.2]},
+  {nom:'NAKOSI Josua',     poste:'Centre',   masse:[96,112],  taille:[1.85,1.93], rsi:[1.9,2.6],  rsimod:[0.47,0.61], tc:[0.16,0.22], cmj:[38,49], sj:[32,42], f0:[8.0,9.4], v0:[9.0,10.4]},
+  {nom:'BURAK Adrien',     poste:'Centre',   masse:[94,110],  taille:[1.84,1.92], rsi:[2.0,2.7],  rsimod:[0.48,0.62], tc:[0.16,0.22], cmj:[39,50], sj:[33,43], f0:[8.1,9.5], v0:[9.1,10.5]},
+  // Ailiers
+  {nom:'PENAUD Louis',     poste:'Ailier',   masse:[85,98],   taille:[1.82,1.90], rsi:[2.2,3.0],  rsimod:[0.53,0.68], tc:[0.14,0.20], cmj:[43,54], sj:[37,47], f0:[8.5,9.8], v0:[9.5,11.0]},
+  {nom:'VILLIERE C.',      poste:'Ailier',   masse:[83,96],   taille:[1.81,1.89], rsi:[2.3,3.1],  rsimod:[0.55,0.70], tc:[0.13,0.19], cmj:[44,55], sj:[38,48], f0:[8.7,10.0],v0:[9.6,11.2]},
+  {nom:'BIELLE-BIARREY L.',poste:'Ailier',   masse:[80,93],   taille:[1.80,1.88], rsi:[2.5,3.3],  rsimod:[0.58,0.72], tc:[0.13,0.18], cmj:[46,57], sj:[40,50], f0:[8.9,10.2],v0:[9.8,11.4]},
+  {nom:'RATTEZ Arthur',    poste:'Ailier',   masse:[82,95],   taille:[1.79,1.87], rsi:[2.4,3.2],  rsimod:[0.56,0.71], tc:[0.13,0.19], cmj:[45,56], sj:[39,49], f0:[8.8,10.1],v0:[9.7,11.3]},
+  // Arrières
+  {nom:'RAMOS Thomas',     poste:'Arrière',  masse:[86,99],   taille:[1.82,1.89], rsi:[2.3,3.0],  rsimod:[0.55,0.69], tc:[0.14,0.20], cmj:[44,54], sj:[38,48], f0:[8.6,9.9], v0:[9.6,11.0]},
+  {nom:'DULIN Brice',      poste:'Arrière',  masse:[87,100],  taille:[1.83,1.90], rsi:[2.2,2.9],  rsimod:[0.53,0.67], tc:[0.14,0.21], cmj:[43,53], sj:[37,47], f0:[8.5,9.8], v0:[9.5,10.9]},
+  {nom:'HASTOY Antoine',   poste:'Ouvreur',  masse:[84,97],   taille:[1.80,1.87], rsi:[1.9,2.6],  rsimod:[0.48,0.63], tc:[0.16,0.22], cmj:[40,51], sj:[34,44], f0:[8.2,9.5], v0:[9.1,10.7]},
+  {nom:'DOUMAYROU Tani',   poste:'Centre',   masse:[92,108],  taille:[1.83,1.91], rsi:[2.0,2.7],  rsimod:[0.49,0.63], tc:[0.16,0.22], cmj:[39,50], sj:[33,43], f0:[8.0,9.4], v0:[9.0,10.5]},
+  {nom:'LESTRADE F.',      poste:'Demi',     masse:[79,91],   taille:[1.71,1.77], rsi:[1.9,2.6],  rsimod:[0.48,0.62], tc:[0.16,0.22], cmj:[39,50], sj:[33,43], f0:[8.1,9.3], v0:[9.1,10.6]},
+  {nom:'TAULEIGNE Baptiste',poste:'3e ligne',masse:[99,113],  taille:[1.86,1.94], rsi:[1.7,2.4],  rsimod:[0.44,0.57], tc:[0.17,0.24], cmj:[36,46], sj:[30,40], f0:[7.9,9.2], v0:[8.7,10.0]},
+];
+
+const FORMES = ['Excellent','Très bon','Très bon','Bon','Bon','Bon','Moyen'];
+const DATES_RSI = ['01/09/2024','10/09/2024','15/09/2024','01/10/2024','15/11/2024','01/12/2024'];
+const DATES_FV  = ['01/09/2024','10/09/2024','15/09/2024','01/10/2024','15/11/2024','01/12/2024'];
+
+function loadSimulation(){
+  if(!confirm('Charger la simulation complète — 30 joueurs avec profils réalistes par poste ?')) return;
+  DB={};
+  SIM_PROFILES.forEach((prof,i)=>{
+    const id='sim'+i;
+    // Some players have no FV test (realistic ~20%)
+    const hasFV = Math.random() > 0.18;
+    // Some players have no RSI test (~15%)
+    const hasRSI = Math.random() > 0.12;
+    const masse = rndI(prof.masse[0], prof.masse[1]);
+    const taille = rnd(prof.taille[0], prof.taille[1]);
+    const dateRsi = pick(DATES_RSI);
+    const dateFv = hasFV ? pick(DATES_FV) : null;
+    DB[id]={
+      id,
+      nom: prof.nom,
+      poste: prof.poste,
+      masse, taille,
+      forme: pick(FORMES),
+      rsi:    hasRSI ? rnd(prof.rsi[0], prof.rsi[1]) : null,
+      rsimod: hasRSI ? rnd(prof.rsimod[0], prof.rsimod[1]) : null,
+      tc:     hasRSI ? rnd(prof.tc[0], prof.tc[1]) : null,
+      cmj:    hasRSI ? rndI(prof.cmj[0], prof.cmj[1]) : null,
+      sj:     hasRSI ? rndI(prof.sj[0], prof.sj[1]) : null,
+      f0:     hasFV ? rnd(prof.f0[0], prof.f0[1]) : null,
+      v0:     hasFV ? rnd(prof.v0[0], prof.v0[1]) : null,
+      dateRsi: hasRSI ? dateRsi : null,
+      dateFv:  dateFv,
+    };
+  });
+  CUR = Object.keys(DB)[0];
+  renderTabs(); renderPreview(); fillProfilSel();
+  alert('✓ 30 joueurs chargés — profils réalistes par poste (Samozino/Morin)');
+}
+
+// ================================================================
+// INIT
+// ================================================================
+document.getElementById('f-date-rsi').value = new Date().toISOString().split('T')[0];
+document.getElementById('f-date-fv').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>

@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse Rugby — Colomiers</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F7F7F5;--surface:#fff;--border:#E0E0DC;--border-strong:#C8C8C2;
+  --text:#1A1A18;--text-mid:#5A5A55;--text-light:#9A9A95;
+  --accent:#1A3A6B;--accent-light:#E8EDF5;--accent-mid:#4A6FA5;
+  --green:#2D6A4F;--orange:#B5522A;
+  --yellow-light:#FEFAE0;--row-alt:#F9F9F7;
+  --bilan-bg:#FFF3CD;--bilan-border:#E6C84A;
+  --psy:#5B3A8C;--psy-light:#FAF5FF;--psy-mid:#8B6FAF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+
+/* HEADER */
+.hdr{background:var(--accent);color:#fff;padding:0 28px;display:flex;align-items:stretch;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.hdr h1{font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:16px 0;white-space:nowrap;}
+.nav{display:flex;align-items:stretch;}
+.ntab{padding:0 16px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);border-bottom:3px solid transparent;display:flex;align-items:center;transition:all .15s;white-space:nowrap;}
+.ntab:hover{color:#fff;}.ntab.on{color:#fff;border-bottom-color:#fff;}
+.hdr-right{display:flex;align-items:center;gap:8px;padding:10px 0;}
+
+/* LAYOUT */
+.wrap{max-width:1500px;margin:0 auto;padding:18px 20px;}
+.pg{display:none;}.pg.on{display:block;}
+
+/* FORM */
+.pform{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:end;}
+.fl label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:4px;}
+.fl input,.fl select{width:100%;padding:6px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:13px;color:var(--text);background:var(--bg);outline:none;}
+.fl input:focus,.fl select:focus{border-color:var(--accent-mid);background:#fff;}
+
+/* BUTTONS */
+.btn{padding:6px 14px;border:none;border-radius:3px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-p{background:var(--accent);color:#fff;}.btn-p:hover{background:#254d8e;}
+.btn-s{background:var(--surface);color:var(--text);border:1px solid var(--border-strong);}.btn-s:hover{background:var(--bg);}
+.btn-g{background:var(--green);color:#fff;}.btn-g:hover{background:#235940;}
+.btn-sim{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);}
+.acts{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.acts-r{margin-left:auto;display:flex;gap:7px;}
+
+/* PLAYER TABS */
+.ptabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;}
+.ptab{padding:4px 12px;border:1px solid var(--border-strong);border-radius:3px;background:var(--surface);cursor:pointer;font-size:12px;font-weight:500;color:var(--text-mid);display:flex;align-items:center;gap:6px;transition:all .15s;}
+.ptab:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent-mid);}
+.ptab.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ptab .rm{font-size:12px;opacity:.6;cursor:pointer;}.ptab .rm:hover{opacity:1;}
+
+/* TABLE */
+.twrap{overflow-x:auto;}
+table.gt{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);font-size:12px;}
+table.gt thead th{background:var(--accent);color:#fff;padding:8px 6px;text-align:center;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-right:1px solid rgba(255,255,255,.12);vertical-align:middle;}
+table.gt thead th.tg{text-align:left;padding-left:10px;width:240px;}
+tr.sh td{background:var(--accent);color:#fff;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:5px 10px;border-top:2px solid rgba(255,255,255,.2);}
+tr.sh.av td{background:#1a4a2e;}
+tr.sh.sp td{background:#2D4A7A;border-top:3px solid #F4B942;}
+tr.sh.py td{background:var(--psy);}
+tr.sh.ro td{background:#3A1A6B;border-top:3px solid #F4B942;}
+tr.gr td{padding:0;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;}
+tr.gr:nth-child(even){background:var(--row-alt);}
+tr.gr:hover{background:var(--accent-light);}
+tr.gr.avr{background:#F2F8F4;}tr.gr.avr:nth-child(even){background:#E8F4ED;}tr.gr.avr:hover{background:#D4ECD9;}
+tr.gr.spr{background:#FFF9F0;}tr.gr.spr:nth-child(even){background:#FFF3E0;}tr.gr.spr:hover{background:#FFE8C0;}
+tr.gr.pyr{background:var(--psy-light);}tr.gr.pyr:nth-child(even){background:#F3EAF9;}tr.gr.pyr:hover{background:#E8D5F5);}
+tr.gr.ror{background:#FFF5F0;}tr.gr.ror:nth-child(even){background:#FFE8DC;}tr.gr.ror:hover{background:#FFD8C8;}
+.gl{padding:6px 8px 6px 10px;font-size:12px;color:var(--text);}
+.sc{text-align:center;min-width:76px;}
+.sc input{width:50px;height:28px;text-align:center;border:1px solid var(--border);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--accent);background:var(--yellow-light);outline:none;}
+.sc input:focus{border-color:var(--accent-mid);background:#fff;}
+.sc.na{background:#EFEFED;pointer-events:none;}
+.sc.na::after{content:'';display:block;width:16px;height:2px;background:#CCC;margin:13px auto;}
+.bc{text-align:center;min-width:56px;background:var(--bilan-bg);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;color:var(--accent);border-left:2px solid var(--bilan-border)!important;padding:6px;}
+tr.br td{background:#EEF2F8;border-top:2px solid var(--accent-mid)!important;border-bottom:2px solid var(--accent-mid)!important;padding:5px 8px;font-weight:600;font-size:10px;color:var(--accent);}
+tr.br .bn{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;background:var(--accent);color:#fff;border-radius:2px;padding:2px 6px;display:inline-block;min-width:32px;text-align:center;}
+
+/* SYNTHESE */
+.syn{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px;}
+.syn h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.syn-lay{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;}
+.scard{border:1px solid var(--border);border-radius:3px;padding:9px 10px;display:flex;align-items:center;gap:7px;}
+.scard.av{border-color:#2D6A4F;background:#F0F8F4;}
+.scard.sp{border-color:#E6C84A;background:#FFFBF0;}
+.scard.py{border-color:var(--psy-mid);background:var(--psy-light);}
+.scard .cn{font-size:10px;font-weight:500;color:var(--text-mid);flex:1;}
+.scard .cs{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--accent);min-width:32px;text-align:right;}
+.sbar{height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden;}
+.sbf{height:100%;border-radius:2px;transition:width .3s;}
+.sbf.hi{background:var(--green);}.sbf.mi{background:var(--accent-mid);}.sbf.lo{background:var(--orange);}
+.ng{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--accent);color:#fff;border-radius:3px;margin-top:8px;}
+.ng .nl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.8;}
+.ng .nv{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;}
+.ng .nm{font-size:12px;opacity:.9;}
+.rw{display:flex;flex-direction:column;align-items:center;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;}
+.rw h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:8px;}
+.ca{margin-top:8px;}
+.ca label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);display:block;margin-bottom:4px;}
+.ca textarea{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:12px;color:var(--text);background:var(--bg);resize:vertical;min-height:65px;outline:none;}
+
+/* LEGENDE */
+.leg{margin-top:12px;padding:8px 12px;background:var(--row-alt);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text-mid);display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.leg b{color:var(--text);}
+
+/* COMPARATIF */
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px 20px;margin-bottom:14px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+.cc label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-right:6px;}
+.cc select{padding:6px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:12px;background:var(--bg);outline:none;}
+.ci{font-size:11px;color:var(--text-mid);margin-left:auto;}
+.cl{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.cp{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;}
+.cp h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.mrp{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:18px;}
+.mrp h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.rcard{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center;}
+.rcard .pn{font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.rcard .pp{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-mid);}
+.rcard.top{border-color:var(--green);background:#F0F8F4;}.rcard.top .pn{color:var(--green);}
+table.ct{width:100%;border-collapse:collapse;font-size:11px;}
+table.ct th{background:var(--accent);color:#fff;padding:7px 7px;text-align:left;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+table.ct th.c{text-align:center;}
+table.ct td{padding:5px 7px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.ct tr:nth-child(even) td{background:var(--row-alt);}
+table.ct tr:hover td{background:var(--accent-light);}
+.sv{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:center;}
+.sv.hi{color:var(--green);}.sv.mi{color:var(--accent-mid);}.sv.lo{color:var(--orange);}
+.tp{display:inline-block;padding:1px 5px;border-radius:2px;font-size:9px;font-weight:600;background:var(--accent-light);color:var(--accent);}
+.srl{display:flex;justify-content:center;padding:8px 0;}
+.srl canvas{max-width:440px;max-height:440px;}
+.rleg{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
+.rli{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-mid);}
+.rld{width:9px;height:9px;border-radius:50%;}
+
+/* PSY */
+.role-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.rtag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:3px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer;font-size:11px;font-weight:500;color:var(--text-mid);transition:all .15s;user-select:none;}
+.rtag.on{background:var(--psy);color:#fff;border-color:var(--psy);}
+.rtag input{display:none;}
+
+/* BILAN */
+.bhdr{background:var(--accent);color:#fff;border-radius:4px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.bhdr h2{font-size:16px;font-weight:600;margin-bottom:3px;}
+.bhdr p{font-size:11px;opacity:.8;}
+.bscores{display:flex;gap:20px;align-items:center;}
+.bsb{text-align:center;}
+.bsb .v{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;}
+.bsb .l{font-size:9px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;margin-top:2px;}
+.bsep{width:1px;background:rgba(255,255,255,.3);height:36px;}
+.blay{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.bpan{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;}
+.bpan h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.brad{display:flex;justify-content:center;padding:8px 0;}
+.brad canvas{max-width:380px;max-height:380px;}
+.bcg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px;}
+.bcr{display:flex;align-items:center;gap:8px;padding:6px 9px;border:1px solid var(--border);border-radius:3px;}
+.bcr .bcl{font-size:11px;flex:1;color:var(--text-mid);}
+.bcr .bcs{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;color:var(--accent);}
+.bcmb{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;font-size:12px;color:var(--text-mid);min-height:55px;font-style:italic;}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--text-light);}
+.empty .ico{font-size:34px;margin-bottom:8px;}
+
+@media print{.hdr,.pform,.acts,.ptabs,.cc{display:none;}body{background:#fff;}.wrap{padding:0;max-width:none;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:28px;">
+    <h1>Analyse Technique &amp; Comportementale — Rugby à XV</h1>
+    <div class="nav">
+      <div class="ntab on" onclick="pg('eval',this)">Évaluation technique</div>
+      <div class="ntab" onclick="pg('comp',this)">Comparatif par poste</div>
+      <div class="ntab" onclick="pg('psy',this)">Profil comportemental</div>
+      <div class="ntab" onclick="pg('bilan',this)">Bilan joueur</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-sim" onclick="loadSim()">⚡ Simulation 30 joueurs</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- PAGE EVAL -->
+<div class="pg on" id="pg-eval">
+  <div class="pform">
+    <div class="fl"><label>Nom</label><input id="in-nom" placeholder="ex : Martin Dupont"></div>
+    <div class="fl"><label>Poste</label>
+      <select id="in-poste">
+        <option value="">— Sélectionner —</option>
+        <optgroup label="Avants">
+          <option>1 - Pilier gauche</option><option>2 - Talonneur</option><option>3 - Pilier droit</option>
+          <option>4 - Deuxième ligne</option><option>5 - Deuxième ligne</option>
+          <option>6 - Troisième ligne aile</option><option>7 - Troisième ligne aile</option>
+          <option>8 - Troisième ligne centre</option>
+        </optgroup>
+        <optgroup label="Arrières">
+          <option>9 - Demi de mêlée</option><option>10 - Demi d'ouverture</option>
+          <option>11 - Ailier gauche</option><option>12 - Centre</option><option>13 - Centre</option>
+          <option>14 - Ailier droit</option><option>15 - Arrière</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="fl"><label>Date</label><input type="date" id="in-date"></div>
+    <div class="fl"><label>Évaluateur</label><input id="in-eval" placeholder="ex : T. Marchand"></div>
+    <div><button class="btn btn-p" onclick="addP()">+ Ajouter</button></div>
+  </div>
+  <div class="ptabs" id="ptabs"></div>
+  <div class="acts" id="actbar" style="display:none">
+    <button class="btn btn-s" onclick="resetP()">Réinitialiser</button>
+    <div class="acts-r">
+      <button class="btn btn-s" onclick="expCSV()">⬇ Export CSV</button>
+      <button class="btn btn-s" onclick="expAllCSV()">⬇ Export tous</button>
+      <button class="btn btn-g" onclick="window.print()">🖨 Imprimer</button>
+    </div>
+  </div>
+  <div id="gcon"><div class="empty"><div class="ico">📋</div><p>Ajoutez un joueur pour commencer.</p></div></div>
+</div>
+
+<!-- PAGE COMP -->
+<div class="pg" id="pg-comp">
+  <div class="cc">
+    <div><label>Groupe de postes</label>
+      <select id="csel" onchange="renderComp()">
+        <option value="">— Sélectionner —</option>
+        <option value="pl">Première ligne (1-2-3)</option>
+        <option value="dl">Deuxième ligne (4-5)</option>
+        <option value="tl">Troisième ligne (6-7-8)</option>
+        <option value="dm">Demi de mêlée (9)</option>
+        <option value="ouv">Demi d'ouverture (10)</option>
+        <option value="ctr">Centre (12-13)</option>
+        <option value="aa">Ailier / Arrière (11-14-15)</option>
+      </select>
+    </div>
+    <div class="ci" id="cinfo"></div>
+  </div>
+  <div id="ccon"><div class="empty"><div class="ico">📊</div><p>Sélectionnez un groupe de postes.</p></div></div>
+</div>
+
+<!-- PAGE PSY -->
+<div class="pg" id="pg-psy">
+  <div class="cc" style="flex-wrap:wrap;gap:14px;">
+    <div class="fl" style="margin:0"><label>Joueur</label>
+      <select id="psy-sel" onchange="renderPsy()" style="padding:6px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:13px;background:var(--bg);outline:none;min-width:220px;">
+        <option value="">— Sélectionner un joueur —</option>
+      </select>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);margin-bottom:6px;">Rôle(s) du joueur</div>
+      <div class="role-tags" id="role-tags"></div>
+    </div>
+  </div>
+  <div id="psycon"><div class="empty"><div class="ico">🧠</div><p>Sélectionnez un joueur pour évaluer son profil comportemental.</p></div></div>
+</div>
+
+<!-- PAGE BILAN -->
+<div class="pg" id="pg-bilan">
+  <div class="cc">
+    <div class="fl" style="margin:0"><label>Joueur</label>
+      <select id="bil-sel" onchange="renderBilan()" style="padding:6px 10px;border:1px solid var(--border-strong);border-radius:3px;font-family:inherit;font-size:13px;background:var(--bg);outline:none;min-width:220px;">
+        <option value="">— Sélectionner un joueur —</option>
+      </select>
+    </div>
+    <div class="acts-r" style="margin-left:auto;">
+      <button class="btn btn-s" onclick="expBilanCSV()">⬇ Export bilan</button>
+      <button class="btn btn-g" onclick="window.print()">🖨 Imprimer</button>
+    </div>
+  </div>
+  <div id="bilcon"><div class="empty"><div class="ico">📊</div><p>Sélectionnez un joueur pour afficher son bilan complet.</p></div></div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ================================================================
+// DONNÉES TECHNIQUES
+// ================================================================
+const ACTX=[
+  {id:"fr",label:"Frais / idéal"},
+  {id:"ft",label:"Sous fatigue"},
+  {id:"pr",label:"Sous pression"},
+  {id:"do",label:"Position dominante"},
+  {id:"of",label:"Offload"},
+];
+
+const SECS=[
+  {id:"pas",label:"PASSES",vis:"all",ctx:["fr","ft","pr","do","of"],
+   gest:["Passe courte (ruck / maul)","Passe longue (écartement)","Passe dévissée / pivot","Passe au sol / après contact"]},
+  {id:"rec",label:"RÉCEPTION / CONSERVATION",vis:"all",ctx:["fr","ft","pr","of"],
+   gest:["Réception ballon haut","Réception en mouvement","Protection de balle au contact","Fixation / percussion avant contact"]},
+  {id:"fra",label:"FRANCHISSEMENT",vis:"all",ctx:["fr","ft","pr","do","of"],
+   gest:["1c1 face au défenseur","Sur prise d'intervalle / timing","Crochet intérieur / extérieur","En supériorité numérique","Après contact / 2e temps"]},
+  {id:"pla",label:"PLAQUAGE / DÉFENSE",vis:"all",ctx:["fr","ft","pr","do"],
+   gest:["Plaquage frontal","Plaquage latéral","Jackal / contest au sol","Replacement défensif"]},
+  {id:"con",label:"CONTACT / COMBAT",vis:"all",ctx:["fr","ft","pr","do","of"],
+   gest:["Entrée en ruck (soutien)","Maul (porteur / soutien)","Offload sous contact","Grattage / contest"]},
+  {id:"cou",label:"COURSE / DÉPLACEMENT",vis:"all",ctx:["fr","ft","pr","do"],
+   gest:["Démarrage (0-10m)","Changement de direction","Course en soutien / ligne","Feinte / jeu de jambes"]},
+  {id:"jpa",label:"JEU AU PIED",vis:[1,2,3,4,5,6,7,8],ctx:["fr","ft","pr"],
+   gest:["Dégagement (survie / duel)","Grubber / rasant","Jeu au pied sous pression défensive"]},
+  {id:"jp3",label:"JEU AU PIED",vis:[9,10,11,12,13,14,15],ctx:["fr","ft","pr","do"],
+   gest:["Pénalité / drop","Dégagement","Grubber / rasant","Coup de pied à suivre","Jeu au pied de placement"]},
+  {id:"mel",label:"MÊLÉE",vis:[1,2,3,4,5,6,7,8],cls:"av",ctx:["fr","ft","pr","do"],
+   gest:["Placement / liaison","Poussée collective","Stabilité sous pression","Sortie de mêlée"]},
+  {id:"tou",label:"TOUCHE",vis:[1,2,3,4,5,6,7,8],cls:"av",ctx:["fr","ft","pr"],
+   gest:["Saut / réception (sauteur)","Soutien / portage sauteur","Organisation / appel de jeu"]},
+];
+
+const SPEC={
+  pl:{label:"SPÉCIFIQUES — PREMIÈRE LIGNE",items:[
+    {id:"a",label:"Dominance individuelle en mêlée (1c1 pilier)"},
+    {id:"b",label:"Endurance de force (répétition contacts sur la durée)"},
+    {id:"c",label:"Stabilité basse / résistance à l'effondrement"},
+    {id:"d",label:"Agilité au contact (redressement / réaction)"},
+  ]},
+  dl:{label:"SPÉCIFIQUES — DEUXIÈME LIGNE",items:[
+    {id:"a",label:"Qualité de saut en touche (timing / hauteur)"},
+    {id:"b",label:"Portage en maul (puissance / placement)"},
+    {id:"c",label:"Duel aérien / contestation ballon haut"},
+    {id:"d",label:"Répétition efforts intenses (endurance contact)"},
+  ]},
+  tl:{label:"SPÉCIFIQUES — TROISIÈME LIGNE",items:[
+    {id:"a",label:"Gagner les duels / cogner fort en percussion"},
+    {id:"b",label:"Vitesse de replacement (attaque → défense)"},
+    {id:"c",label:"Lecture défensive / anticipation"},
+    {id:"d",label:"Portage de balle en première main (gain terrain)"},
+  ]},
+  dm:{label:"SPÉCIFIQUES — DEMI DE MÊLÉE",items:[
+    {id:"a",label:"Accélération du jeu (rythme de sortie de ruck)"},
+    {id:"b",label:"Gestion du tempo (accélérer / ralentir / gérer)"},
+    {id:"c",label:"Rapidité de sortie mêlée / ruck (temps de passe)"},
+    {id:"d",label:"Communication / direction du jeu en temps réel"},
+  ]},
+  ouv:{label:"SPÉCIFIQUES — DEMI D'OUVERTURE",items:[
+    {id:"a",label:"Gestion du jeu / leadership offensif"},
+    {id:"b",label:"Lecture de la défense avant la passe / le pied"},
+    {id:"c",label:"Précision au but (pénalités / drops — fiabilité)"},
+    {id:"d",label:"Communication / direction de jeu (organisation)"},
+  ]},
+  ctr:{label:"SPÉCIFIQUES — CENTRE",items:[
+    {id:"a",label:"Percussion / gagner les duels en première main"},
+    {id:"b",label:"Défense sur l'homme (solidité / plaquage haut)"},
+    {id:"c",label:"Création d'espace pour les extérieurs"},
+    {id:"d",label:"Lecture défensive / couverture extérieure"},
+  ]},
+  aa:{label:"SPÉCIFIQUES — AILIER / ARRIÈRE",items:[
+    {id:"a",label:"Ballons hauts (sécurité / relance / contre-att.)"},
+    {id:"b",label:"Accélération / vitesse de pointe (0-30m)"},
+    {id:"c",label:"Finition en 1c1 en bout de ligne"},
+    {id:"d",label:"Jeu au pied de déplacement (trouver la touche)"},
+  ]},
+};
+
+const PGRP={pl:[1,2,3],dl:[4,5],tl:[6,7,8],dm:[9],ouv:[10],ctr:[12,13],aa:[11,14,15]};
+const PRAD={
+  pl:["pas","con","pla","mel","tou"],dl:["con","mel","tou","pla","cou"],
+  tl:["con","pla","cou","fra","pas"],dm:["pas","jp3","cou","fra","pla"],
+  ouv:["jp3","pas","fra","rec","cou"],ctr:["fra","pla","con","pas","rec"],
+  aa:["cou","fra","rec","jp3","pla"],
+};
+const COLORS=['rgba(26,58,107','rgba(45,106,79','rgba(181,82,42','rgba(108,50,143','rgba(30,136,160','rgba(196,160,0','rgba(180,40,60'];
+
+// ================================================================
+// DONNÉES PSY
+// ================================================================
+const PCTX=[
+  {id:"fav",label:"Situation favorable"},
+  {id:"def",label:"Situation défavorable"},
+];
+
+const PSECS=[
+  {id:"err",label:"RÉACTION & GESTION DE L'ERREUR",gest:[
+    "Réaction immédiate après une erreur personnelle",
+    "Réaction après un essai encaissé / événement négatif collectif",
+    "Retour au niveau d'engagement après un événement difficile",
+    "Gestion de la frustration visible (gestes, posture, attitude)",
+  ]},
+  {id:"com",label:"COMMUNICATION & LEADERSHIP",gest:[
+    "Communication verbale avec les partenaires sous pression",
+    "Qualité du message (solution vs reproche / protestation)",
+    "Initiative de communication en situation critique",
+    "Communication non verbale (posture, regard, encouragements)",
+  ]},
+  {id:"eng",label:"ENGAGEMENT & INTENSITÉ",gest:[
+    "Niveau d'intensité en fin de match / sous fatigue",
+    "Engagement dans les phases sans ballon (replacement, soutien)",
+    "Constance de l'effort sur la durée de la rencontre",
+  ]},
+  {id:"conf",label:"CONFIANCE & PRISE DE RISQUE",gest:[
+    "Prise d'initiative / prise de risque dans l'action",
+    "Comportement après une série d'erreurs (évitement ou engagement)",
+    "Lisibilité de la confiance dans le geste technique",
+  ]},
+  {id:"hg",label:"HORS GROUPE & REMPLAÇANT",gest:[
+    "Implication et attitude à l'entraînement quand hors groupe",
+    "Comportement le jour du match (soutien, disponibilité, état d'esprit)",
+    "Attitude sur le banc en tant que remplaçant (concentration, soutien)",
+    "Qualité de l'entrée en jeu en tant que remplaçant (impact immédiat)",
+  ]},
+];
+
+const ROLES={
+  cap:{label:"CAPITAINE",col:"#8B1A1A",items:[
+    {id:"a",label:"Mobilisation du groupe en séquence critique"},
+    {id:"b",label:"Communication avec l'arbitre (maîtrise, efficacité)"},
+    {id:"c",label:"Capacité à relever le groupe après un événement négatif"},
+    {id:"d",label:"Clarté et impact du message en mi-temps / pause"},
+    {id:"e",label:"Exemplarité comportementale visible en toutes situations"},
+  ]},
+  scap:{label:"SOUS-CAPITAINE",col:"#8B4A1A",items:[
+    {id:"a",label:"Relais du message du capitaine auprès du groupe"},
+    {id:"b",label:"Stabilisation d'un joueur en difficulté (soutien direct)"},
+    {id:"c",label:"Exemplarité comportementale / rôle de référence"},
+    {id:"d",label:"Prise en charge quand le capitaine n'est pas disponible"},
+  ]},
+  but:{label:"BUTEUR",col:"#1A5A1A",items:[
+    {id:"a",label:"Qualité et stabilité de la routine pré-coup"},
+    {id:"b",label:"Régularité sur la durée du match (ne baisse pas)"},
+    {id:"c",label:"Réaction après un raté (retour à la routine, pas de rumination)"},
+    {id:"d",label:"Efficacité sur les coups importants (fin de match, score serré)"},
+  ]},
+  lanc:{label:"LANCEUR EN TOUCHE",col:"#1A3A6B",items:[
+    {id:"a",label:"Qualité et stabilité de la routine pré-lancer"},
+    {id:"b",label:"Adaptation sous pression (touche défensive, score serré)"},
+    {id:"c",label:"Réaction après un mauvais lancer (retour rapide au niveau)"},
+    {id:"d",label:"Maîtrise des variantes en fonction des appels"},
+  ]},
+  ltou:{label:"LEADER DE TOUCHE",col:"#1A4A3A",items:[
+    {id:"a",label:"Organisation de la touche avant l'exécution"},
+    {id:"b",label:"Ajustement tactique rapide après une touche ratée"},
+    {id:"c",label:"Communication avec le lanceur (clarté, timing)"},
+    {id:"d",label:"Lecture de la touche adverse / anticipation"},
+  ]},
+};
+
+// ================================================================
+// STATE
+// ================================================================
+let P={}, CUR=null;
+
+function pnum(pid){const p=P[pid];if(!p||!p.poste)return null;return parseInt(p.poste.split(' - ')[0]);}
+function isAv(pid){const n=pnum(pid);return n&&n>=1&&n<=8;}
+function pgrp(pid){const n=pnum(pid);if(!n)return null;for(const[g,ns]of Object.entries(PGRP))if(ns.includes(n))return g;return null;}
+function secs4(pid){const n=pnum(pid);if(!n)return SECS;return SECS.filter(s=>s.vis==="all"||s.vis.includes(n));}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function pg(name,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  el.classList.add('on');
+  if(name==='comp')renderComp();
+  if(name==='psy'){fillSel('psy-sel');renderRoleTags();renderPsy();}
+  if(name==='bilan'){fillSel('bil-sel');renderBilan();}
+}
+
+function fillSel(id){
+  const sel=document.getElementById(id);if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Sélectionner un joueur —</option>';
+  Object.values(P).forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p.id;o.textContent=p.nom+(p.poste?' · '+p.poste:'');
+    sel.appendChild(o);
+  });
+  if(cur&&P[cur])sel.value=cur;
+}
+
+function renderRoleTags(){
+  const c=document.getElementById('role-tags');if(!c)return;
+  c.innerHTML='';
+  Object.entries(ROLES).forEach(([key,r])=>{
+    const lbl=document.createElement('label');
+    lbl.className='rtag';
+    const inp=document.createElement('input');
+    inp.type='checkbox';inp.value=key;inp.className='rcb';
+    inp.onchange=()=>{lbl.classList.toggle('on',inp.checked);renderPsy();};
+    lbl.appendChild(inp);
+    lbl.appendChild(document.createTextNode(r.label));
+    c.appendChild(lbl);
+  });
+}
+
+// ================================================================
+// PLAYERS
+// ================================================================
+function addP(){
+  const nom=document.getElementById('in-nom').value.trim();
+  const poste=document.getElementById('in-poste').value;
+  const date=document.getElementById('in-date').value;
+  const ev=document.getElementById('in-eval').value.trim();
+  if(!nom){alert('Saisir le nom.');return;}
+  const id='p'+Date.now();
+  P[id]={id,nom,poste,date,ev,sc:{},ssc:{},psc:{},com:'',pcom:''};
+  CUR=id;renderTabs();renderG();fillSel('psy-sel');fillSel('bil-sel');
+  document.getElementById('in-nom').value='';
+  document.getElementById('in-poste').value='';
+  document.getElementById('in-eval').value='';
+}
+
+function selP(id){CUR=id;renderTabs();renderG();}
+function delP(id,e){
+  e.stopPropagation();
+  if(!confirm('Supprimer ?'))return;
+  delete P[id];
+  const ids=Object.keys(P);CUR=ids.length?ids[ids.length-1]:null;
+  renderTabs();renderG();fillSel('psy-sel');fillSel('bil-sel');
+}
+function resetP(){
+  if(!CUR||!confirm('Réinitialiser ?'))return;
+  P[CUR].sc={};P[CUR].ssc={};P[CUR].com='';renderG();
+}
+
+// ================================================================
+// SCORES TECHNIQUES
+// ================================================================
+function sS(pid,sid,gi,cid,val){
+  const k=sid+'_'+gi+'_'+cid;let v=val===''?null:parseFloat(val);
+  if(v!==null&&(isNaN(v)||v<0||v>10))return;
+  P[pid].sc[k]=v;upB(pid);
+}
+function ssS(pid,gid,iid,cid,val){
+  const k='s_'+gid+'_'+iid+'_'+cid;let v=val===''?null:parseFloat(val);
+  if(v!==null&&(isNaN(v)||v<0||v>10))return;
+  P[pid].ssc[k]=v;upB(pid);
+}
+function gS(pid,sid,gi,cid){const v=P[pid].sc[sid+'_'+gi+'_'+cid];return(v===null||v===undefined)?'':v;}
+function gsS(pid,gid,iid,cid){const v=P[pid].ssc['s_'+gid+'_'+iid+'_'+cid];return(v===null||v===undefined)?'':v;}
+
+function avg(arr){const v=arr.filter(x=>x!==null&&x!==undefined&&x!=='');return v.length?v.reduce((a,b)=>a+parseFloat(b),0)/v.length:null;}
+
+function secBil(pid,sec){
+  const vals=[];
+  sec.gest.forEach((g,gi)=>sec.ctx.forEach(cid=>{const v=P[pid].sc[sec.id+'_'+gi+'_'+cid];if(v!==null&&v!==undefined&&v!=='')vals.push(v);}));
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function gestBil(pid,sec,gi){
+  const vals=sec.ctx.map(cid=>P[pid].sc[sec.id+'_'+gi+'_'+cid]);
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function specBil(pid,gid){
+  if(!SPEC[gid])return'—';
+  const vals=[];
+  SPEC[gid].items.forEach(item=>['fr','ft','pr','do'].forEach(cid=>{const v=P[pid].ssc['s_'+gid+'_'+item.id+'_'+cid];if(v!==null&&v!==undefined&&v!=='')vals.push(v);}));
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function specItemBil(pid,gid,iid){
+  const vals=['fr','ft','pr','do'].map(cid=>P[pid].ssc['s_'+gid+'_'+iid+'_'+cid]);
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function techGlob(pid){
+  const vals=[...Object.values(P[pid].sc),...Object.values(P[pid].ssc)].filter(v=>v!==null&&v!==undefined&&v!=='');
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+
+// ================================================================
+// SCORES PSY
+// ================================================================
+function psyS(pid,sid,gi,cid,val){
+  if(!P[pid].psc)P[pid].psc={};
+  const k='py_'+sid+'_'+gi+'_'+cid;let v=val===''?null:parseFloat(val);
+  if(v!==null&&(isNaN(v)||v<0||v>10))return;
+  P[pid].psc[k]=v;upPsyB(pid);
+}
+function psyRS(pid,role,iid,cid,val){
+  if(!P[pid].psc)P[pid].psc={};
+  const k='pr_'+role+'_'+iid+'_'+cid;let v=val===''?null:parseFloat(val);
+  if(v!==null&&(isNaN(v)||v<0||v>10))return;
+  P[pid].psc[k]=v;upPsyB(pid);
+}
+function gPS(pid,sid,gi,cid){if(!P[pid].psc)return'';const v=P[pid].psc['py_'+sid+'_'+gi+'_'+cid];return(v===null||v===undefined)?'':v;}
+function gPRS(pid,role,iid,cid){if(!P[pid].psc)return'';const v=P[pid].psc['pr_'+role+'_'+iid+'_'+cid];return(v===null||v===undefined)?'':v;}
+
+function psySecBil(pid,sec){
+  if(!P[pid].psc)return'—';
+  const vals=[];
+  sec.gest.forEach((g,gi)=>PCTX.forEach(ctx=>{const v=P[pid].psc['py_'+sec.id+'_'+gi+'_'+ctx.id];if(v!==null&&v!==undefined&&v!=='')vals.push(v);}));
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function psyGestBil(pid,sec,gi){
+  if(!P[pid].psc)return'—';
+  const vals=PCTX.map(ctx=>P[pid].psc['py_'+sec.id+'_'+gi+'_'+ctx.id]);
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function psyRoleBil(pid,role){
+  if(!P[pid].psc||!ROLES[role])return'—';
+  const vals=[];
+  ROLES[role].items.forEach(item=>PCTX.forEach(ctx=>{const v=P[pid].psc['pr_'+role+'_'+item.id+'_'+ctx.id];if(v!==null&&v!==undefined&&v!=='')vals.push(v);}));
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function psyRoleItemBil(pid,role,iid){
+  if(!P[pid].psc)return'—';
+  const vals=PCTX.map(ctx=>P[pid].psc['pr_'+role+'_'+iid+'_'+ctx.id]);
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+function psyGlob(pid){
+  if(!P[pid].psc)return'—';
+  const vals=Object.values(P[pid].psc).filter(v=>v!==null&&v!==undefined&&v!=='');
+  const a=avg(vals);return a!==null?a.toFixed(1):'—';
+}
+
+// ================================================================
+// MENTION
+// ================================================================
+function ment(n){
+  if(n==='—')return'';const v=parseFloat(n);
+  if(v>=8.5)return'Excellent';if(v>=7)return'Bonne maîtrise';
+  if(v>=5)return'Maîtrise partielle';if(v>=3)return'Insuffisant';return'Absent';
+}
+function cls(n){const v=parseFloat(n);return v>=7?'hi':v>=4?'mi':'lo';}
+
+// ================================================================
+// UPDATE BILANS (live)
+// ================================================================
+function upB(pid){
+  secs4(pid).forEach(sec=>{
+    sec.gest.forEach((g,gi)=>{const el=document.getElementById('b_'+sec.id+'_'+gi);if(el)el.textContent=gestBil(pid,sec,gi);});
+    const se=document.getElementById('bs_'+sec.id);if(se)se.textContent=secBil(pid,sec);
+  });
+  const grp=pgrp(pid);
+  if(grp&&SPEC[grp]){
+    SPEC[grp].items.forEach(item=>{const el=document.getElementById('sp_'+grp+'_'+item.id);if(el)el.textContent=specItemBil(pid,grp,item.id);});
+    const se=document.getElementById('spb_'+grp);if(se)se.textContent=specBil(pid,grp);
+  }
+  renderSyn(pid);
+}
+
+function upPsyB(pid){
+  PSECS.forEach(sec=>{
+    sec.gest.forEach((g,gi)=>{const el=document.getElementById('pb_'+sec.id+'_'+gi);if(el)el.textContent=psyGestBil(pid,sec,gi);});
+    const se=document.getElementById('pbs_'+sec.id);if(se)se.textContent=psySecBil(pid,sec);
+  });
+  const roles=selRoles();
+  roles.forEach(role=>{
+    ROLES[role].items.forEach(item=>{const el=document.getElementById('prb_'+role+'_'+item.id);if(el)el.textContent=psyRoleItemBil(pid,role,item.id);});
+    const se=document.getElementById('prbg_'+role);if(se)se.textContent=psyRoleBil(pid,role);
+  });
+  renderPsySyn(pid,roles);
+}
+
+function selRoles(){return Array.from(document.querySelectorAll('.rcb:checked')).map(cb=>cb.value);}
+
+// ================================================================
+// RENDER TABS
+// ================================================================
+function renderTabs(){
+  const c=document.getElementById('ptabs');c.innerHTML='';
+  Object.values(P).forEach(p=>{
+    const t=document.createElement('div');
+    t.className='ptab'+(p.id===CUR?' on':'');
+    t.onclick=()=>selP(p.id);
+    const n=p.poste?p.poste.split(' - ')[0]:'';
+    t.innerHTML=`<span>${p.nom}${n?' · <small>N°'+n+'</small>':''}</span><span class="rm" onclick="delP('${p.id}',event)">✕</span>`;
+    c.appendChild(t);
+  });
+}
+
+// ================================================================
+// RENDER GRILLE TECHNIQUE
+// ================================================================
+function renderG(){
+  const con=document.getElementById('gcon');
+  const ab=document.getElementById('actbar');
+  if(!CUR||!P[CUR]){con.innerHTML='<div class="empty"><div class="ico">📋</div><p>Ajoutez un joueur pour commencer.</p></div>';ab.style.display='none';return;}
+  ab.style.display='flex';
+  const p=P[CUR],n=pnum(CUR),grp=pgrp(CUR),sp=grp?SPEC[grp]:null,secs=secs4(CUR),isTal=(n===2);
+
+  let h=`<div class="twrap"><table class="gt"><thead><tr>
+    <th class="tg">Geste technique</th>`;
+  ACTX.forEach(c=>{h+=`<th>${c.label}</th>`;});
+  h+=`<th style="background:#0f2547">Bilan</th></tr></thead><tbody>`;
+
+  secs.forEach(sec=>{
+    const scls=sec.cls?' '+sec.cls:'';
+    h+=`<tr class="sh${scls}"><td colspan="${ACTX.length+2}">${sec.label}${sec.cls==='av'?' <span style="opacity:.7;font-size:9px;font-weight:400">(avants)</span>':''}</td></tr>`;
+    if(sec.id==='tou'&&isTal){
+      h+=`<tr class="gr avr"><td class="gl">⭐ Lancer en touche (précision / variantes)</td>`;
+      ACTX.forEach(c=>{
+        if(sec.ctx.includes(c.id)){const v=gS(p.id,'tl',0,c.id);h+=`<td class="sc"><input type="number" min="0" max="10" step="0.5" placeholder="—" value="${v}" oninput="sS('${p.id}','tl',0,'${c.id}',this.value)"></td>`;}
+        else h+=`<td class="sc na"></td>`;
+      });
+      h+=`<td class="bc" id="b_tl_0">${gestBil(p.id,{id:'tl',ctx:sec.ctx},0)}</td></tr>`;
+    }
+    sec.gest.forEach((g,gi)=>{
+      const rc=sec.cls==='av'?' avr':'';
+      h+=`<tr class="gr${rc}"><td class="gl">${g}</td>`;
+      ACTX.forEach(c=>{
+        if(sec.ctx.includes(c.id)){const v=gS(p.id,sec.id,gi,c.id);h+=`<td class="sc"><input type="number" min="0" max="10" step="0.5" placeholder="—" value="${v}" oninput="sS('${p.id}','${sec.id}',${gi},'${c.id}',this.value)"></td>`;}
+        else h+=`<td class="sc na"></td>`;
+      });
+      h+=`<td class="bc" id="b_${sec.id}_${gi}">${gestBil(p.id,sec,gi)}</td></tr>`;
+    });
+    h+=`<tr class="br"><td colspan="${ACTX.length+1}" style="font-size:10px">► Bilan ${sec.label}</td><td style="text-align:center"><span class="bn" id="bs_${sec.id}">${secBil(p.id,sec)}</span></td></tr>`;
+  });
+
+  if(sp){
+    h+=`<tr class="sh sp"><td colspan="${ACTX.length+2}">⭐ ${sp.label}</td></tr>`;
+    sp.items.forEach(item=>{
+      h+=`<tr class="gr spr"><td class="gl">${item.label}</td>`;
+      ACTX.forEach(c=>{
+        if(['fr','ft','pr','do'].includes(c.id)){const v=gsS(p.id,grp,item.id,c.id);h+=`<td class="sc"><input type="number" min="0" max="10" step="0.5" placeholder="—" value="${v}" oninput="ssS('${p.id}','${grp}','${item.id}','${c.id}',this.value)"></td>`;}
+        else h+=`<td class="sc na"></td>`;
+      });
+      h+=`<td class="bc" id="sp_${grp}_${item.id}">${specItemBil(p.id,grp,item.id)}</td></tr>`;
+    });
+    h+=`<tr class="br"><td colspan="${ACTX.length+1}" style="font-size:10px">► Bilan critères spécifiques</td><td style="text-align:center"><span class="bn" id="spb_${grp}">${specBil(p.id,grp)}</span></td></tr>`;
+  }
+
+  h+=`</tbody></table></div>`;
+  h+=`<div class="leg"><b>Échelle :</b> <b>0</b> absent — <b>3</b> insuffisant — <b>5</b> partiel — <b>7</b> bonne maîtrise — <b>10</b> excellent &nbsp;|&nbsp; <span style="display:inline-block;width:10px;height:10px;background:#EFEFED;border-radius:2px;vertical-align:middle"></span> contexte non applicable</div>`;
+  h+=`<div class="syn"><h2>Synthèse — ${p.nom}${p.poste?' · '+p.poste:''}${p.date?' · '+fd(p.date):''}</h2>
+    <div class="syn-lay">
+      <div><div class="sgrid" id="sg"></div><div id="ng"></div>
+        <div class="ca"><label>Commentaire / Axes de développement</label>
+          <textarea placeholder="Points forts, axes de travail..." oninput="P['${p.id}'].com=this.value">${p.com||''}</textarea>
+        </div>
+      </div>
+      <div class="rw"><h3>Profil technique</h3><canvas id="rc" width="280" height="280"></canvas></div>
+    </div></div>`;
+  con.innerHTML=h;
+  renderSyn(p.id);
+}
+
+// ================================================================
+// RENDER SYNTHESE TECHNIQUE
+// ================================================================
+function renderSyn(pid){
+  const p=P[pid];if(!p)return;
+  const sg=document.getElementById('sg'),ng=document.getElementById('ng');if(!sg||!ng)return;
+  const secs=secs4(pid),grp=pgrp(pid),sp=grp?SPEC[grp]:null;
+  const labels=[],data=[];let h='';
+
+  secs.forEach(sec=>{
+    const v=secBil(pid,sec),num=parseFloat(v),pct=isNaN(num)?0:(num/10)*100;
+    const c=isNaN(num)?'mi':num>=7?'hi':num>=4?'mi':'lo';
+    const sc=sec.cls==='av'?' av':'';
+    h+=`<div class="scard${sc}"><div style="flex:1"><div class="cn">${sec.label}</div><div class="sbar"><div class="sbf ${c}" style="width:${pct}%"></div></div></div><div class="cs">${v}</div></div>`;
+    labels.push(sec.label.length>14?sec.label.substring(0,14)+'…':sec.label);
+    data.push(isNaN(num)?0:num);
+  });
+  if(sp){
+    const v=specBil(pid,grp),num=parseFloat(v),pct=isNaN(num)?0:(num/10)*100;
+    const c=isNaN(num)?'mi':num>=7?'hi':num>=4?'mi':'lo';
+    h+=`<div class="scard sp"><div style="flex:1"><div class="cn">⭐ Spécifiques poste</div><div class="sbar"><div class="sbf ${c}" style="width:${pct}%"></div></div></div><div class="cs">${v}</div></div>`;
+    labels.push('Spéc.');data.push(isNaN(num)?0:num);
+  }
+  sg.innerHTML=h;
+  const gv=techGlob(pid);
+  ng.innerHTML=`<div class="ng"><div><div class="nl">Note technique globale</div><div class="nm">${ment(gv)}</div></div><div class="nv">${gv}</div></div>`;
+
+  const canvas=document.getElementById('rc');if(!canvas)return;
+  if(window._rc){window._rc.destroy();window._rc=null;}
+  window._rc=new Chart(canvas,{type:'radar',data:{labels,datasets:[{data,backgroundColor:'rgba(26,58,107,0.15)',borderColor:'rgba(26,58,107,0.85)',borderWidth:2,pointBackgroundColor:'rgba(26,58,107,1)',pointBorderColor:'#fff',pointRadius:3}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}/10`}}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:8,family:'IBM Plex Mono'},color:'#9A9A95',backdropColor:'transparent'},pointLabels:{font:{size:8,family:'IBM Plex Sans',weight:'500'},color:'#1A1A18'},grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+}
+
+// ================================================================
+// RENDER COMPARATIF
+// ================================================================
+function renderComp(){
+  const gk=document.getElementById('csel').value;
+  const con=document.getElementById('ccon'),ci=document.getElementById('cinfo');
+  if(!gk){con.innerHTML='<div class="empty"><div class="ico">📊</div><p>Sélectionnez un groupe.</p></div>';ci.textContent='';return;}
+  const nums=PGRP[gk];
+  const gps=Object.values(P).filter(p=>{if(!p.poste)return false;return nums.includes(parseInt(p.poste.split(' - ')[0]));});
+  ci.textContent=gps.length+' joueur'+(gps.length>1?'s':'')+' évalué'+(gps.length>1?'s':'');
+  if(!gps.length){con.innerHTML='<div class="empty"><div class="ico">📊</div><p>Aucun joueur évalué pour ce poste.</p></div>';return;}
+  const sp=SPEC[gk];
+  const rcats=PRAD[gk].map(id=>SECS.find(s=>s.id===id)).filter(Boolean);
+  const rl=[];rcats.forEach(s=>rl.push(s.label.length>13?s.label.substring(0,13)+'…':s.label));
+  if(sp)sp.items.forEach(item=>rl.push(item.label.length>16?item.label.substring(0,16)+'…':item.label));
+  const sorted=[...gps].sort((a,b)=>(parseFloat(techGlob(b.id))||0)-(parseFloat(techGlob(a.id))||0));
+
+  let h=`<div class="mrp"><h3>Profils individuels — catégories prioritaires du poste</h3><div class="rgrid" id="rgrid"></div></div>
+  <div class="cl">
+    <div class="cp"><h3>Superposition des profils</h3><div class="srl"><canvas id="srad" width="440" height="440"></canvas></div><div class="rleg" id="rleg"></div></div>
+    <div class="cp"><h3>Classement</h3><div id="ctab"></div></div>
+  </div>`;
+  con.innerHTML=h;
+
+  const grid=document.getElementById('rgrid');
+  sorted.forEach((p,idx)=>{
+    const d=buildRD(p.id,rcats,sp,gk);
+    const card=document.createElement('div');
+    card.className='rcard'+(idx===0?' top':'');
+    card.innerHTML=`<div class="pn">${idx===0?'🥇 ':''}${p.nom}</div><div class="pp">${p.poste||''} · ${techGlob(p.id)}/10</div><canvas id="rc${idx}" height="180"></canvas>`;
+    grid.appendChild(card);
+    const col=COLORS[idx%COLORS.length];
+    new Chart(document.getElementById('rc'+idx),{type:'radar',data:{labels:rl,datasets:[{data:d,backgroundColor:`${col},0.15)`,borderColor:`${col},0.9)`,borderWidth:2,pointBackgroundColor:`${col},1)`,pointBorderColor:'#fff',pointRadius:2}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}/10`}}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:7},color:'#9A9A95',backdropColor:'transparent'},pointLabels:{font:{size:8,family:'IBM Plex Sans'},color:'#5A5A55'},grid:{color:'rgba(0,0,0,0.07)'},angleLines:{color:'rgba(0,0,0,0.08)'}}}}});
+  });
+
+  const ds=sorted.slice(0,7).map((p,idx)=>{const col=COLORS[idx%COLORS.length];return{label:p.nom,data:buildRD(p.id,rcats,sp,gk),backgroundColor:`${col},0.05)`,borderColor:`${col},0.85)`,borderWidth:2,pointBackgroundColor:`${col},1)`,pointBorderColor:'#fff',pointRadius:2};});
+  if(window._sr){window._sr.destroy();window._sr=null;}
+  window._sr=new Chart(document.getElementById('srad'),{type:'radar',data:{labels:rl,datasets:ds},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw.toFixed(1)}/10`}}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:8,family:'IBM Plex Mono'},color:'#9A9A95',backdropColor:'transparent'},pointLabels:{font:{size:9,family:'IBM Plex Sans',weight:'500'},color:'#1A1A18'},grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+  const leg=document.getElementById('rleg');
+  ds.forEach((d,idx)=>{const col=COLORS[idx%COLORS.length];leg.innerHTML+=`<div class="rli"><div class="rld" style="background:${col},0.9)"></div><span>${d.label}</span></div>`;});
+
+  const ch=rcats.map(s=>`<th class="c">${s.label.substring(0,8)}</th>`).join('');
+  const sh=sp?'<th class="c">Spéc.</th>':'';
+  let tbl=`<table class="ct"><thead><tr><th>#</th><th>Joueur</th><th>N°</th>${ch}${sh}<th class="c">GLOBAL</th></tr></thead><tbody>`;
+  sorted.forEach((p,idx)=>{
+    const rk=idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':idx+1;
+    const cats=rcats.map(sec=>{const v=secBil(p.id,sec);const n=parseFloat(v)||0;return`<td class="sv ${cls(n)}">${v}</td>`;}).join('');
+    const spv=sp?specBil(p.id,gk):'';
+    const spd=sp?`<td class="sv ${cls(parseFloat(spv)||0)}">${spv}</td>`:'';
+    const gv=techGlob(p.id);
+    tbl+=`<tr><td>${rk}</td><td><strong>${p.nom}</strong></td><td><span class="tp">${p.poste?p.poste.split(' - ')[0]:''}</span></td>${cats}${spd}<td class="sv ${cls(parseFloat(gv)||0)}" style="font-size:13px">${gv}</td></tr>`;
+  });
+  tbl+=`</tbody></table>`;
+  document.getElementById('ctab').innerHTML=tbl;
+}
+
+function buildRD(pid,secs,sp,gk){
+  const d=[];
+  secs.forEach(sec=>{d.push(parseFloat(secBil(pid,sec))||0);});
+  if(sp)sp.items.forEach(item=>{d.push(parseFloat(specItemBil(pid,gk,item.id))||0);});
+  return d;
+}
+
+// ================================================================
+// RENDER PSY GRILLE
+// ================================================================
+function renderPsy(){
+  const pid=document.getElementById('psy-sel').value;
+  const con=document.getElementById('psycon');
+  if(!pid){con.innerHTML='<div class="empty"><div class="ico">🧠</div><p>Sélectionnez un joueur.</p></div>';return;}
+  const p=P[pid];if(!p.psc)p.psc={};
+  const roles=selRoles();
+
+  let h=`<div class="twrap"><table class="gt"><thead><tr>
+    <th class="tg" style="background:var(--psy)">Observable terrain</th>
+    <th style="background:var(--psy)">${PCTX[0].label}</th>
+    <th style="background:var(--psy)">${PCTX[1].label}</th>
+    <th style="background:#3A1A6B">Bilan</th>
+  </tr></thead><tbody>`;
+
+  PSECS.forEach(sec=>{
+    h+=`<tr class="sh py"><td colspan="4">${sec.label}</td></tr>`;
+    sec.gest.forEach((g,gi)=>{
+      h+=`<tr class="gr pyr"><td class="gl">${g}</td>`;
+      PCTX.forEach(ctx=>{const v=gPS(pid,sec.id,gi,ctx.id);h+=`<td class="sc"><input type="number" min="0" max="10" step="0.5" placeholder="—" value="${v}" oninput="psyS('${pid}','${sec.id}',${gi},'${ctx.id}',this.value)"></td>`;});
+      h+=`<td class="bc" id="pb_${sec.id}_${gi}">${psyGestBil(pid,sec,gi)}</td></tr>`;
+    });
+    h+=`<tr class="br"><td colspan="3" style="font-size:10px">► Bilan ${sec.label}</td><td style="text-align:center"><span class="bn" id="pbs_${sec.id}">${psySecBil(pid,sec)}</span></td></tr>`;
+  });
+
+  roles.forEach(role=>{
+    if(!ROLES[role])return;
+    const r=ROLES[role];
+    h+=`<tr class="sh ro"><td colspan="4">⭐ ${r.label}</td></tr>`;
+    r.items.forEach(item=>{
+      h+=`<tr class="gr ror"><td class="gl">${item.label}</td>`;
+      PCTX.forEach(ctx=>{const v=gPRS(pid,role,item.id,ctx.id);h+=`<td class="sc"><input type="number" min="0" max="10" step="0.5" placeholder="—" value="${v}" oninput="psyRS('${pid}','${role}','${item.id}','${ctx.id}',this.value)"></td>`;});
+      h+=`<td class="bc" id="prb_${role}_${item.id}">${psyRoleItemBil(pid,role,item.id)}</td></tr>`;
+    });
+    h+=`<tr class="br"><td colspan="3" style="font-size:10px">► Bilan ${r.label}</td><td style="text-align:center"><span class="bn" id="prbg_${role}">${psyRoleBil(pid,role)}</span></td></tr>`;
+  });
+
+  h+=`</tbody></table></div>`;
+  h+=`<div class="leg"><b>Échelle :</b> <b>0</b> absent — <b>3</b> insuffisant — <b>5</b> partiel — <b>7</b> bonne maîtrise — <b>10</b> excellent &nbsp;|&nbsp; Évaluation par observation terrain — coach uniquement &nbsp;|&nbsp; ⭐ critères spécifiques au rôle</div>`;
+  h+=`<div class="syn" style="border-color:var(--psy-mid)"><h2>Synthèse comportementale — ${p.nom}${p.poste?' · '+p.poste:''}</h2>
+    <div class="syn-lay">
+      <div><div class="sgrid" id="psg"></div><div id="png"></div>
+        <div class="ca"><label>Observations générales (comportement, attitude, évolution)</label>
+          <textarea placeholder="Observations du coach..." oninput="P['${pid}'].pcom=this.value">${p.pcom||''}</textarea>
+        </div>
+      </div>
+      <div class="rw"><h3>Profil comportemental</h3><canvas id="prc" width="280" height="280"></canvas></div>
+    </div></div>`;
+  con.innerHTML=h;
+  renderPsySyn(pid,roles);
+}
+
+function renderPsySyn(pid,roles){
+  const p=P[pid];if(!p)return;
+  const sg=document.getElementById('psg'),ng=document.getElementById('png');if(!sg||!ng)return;
+  const labels=[],data=[];let h='';
+  PSECS.forEach(sec=>{
+    const v=psySecBil(pid,sec),num=parseFloat(v),pct=isNaN(num)?0:(num/10)*100;
+    const c=isNaN(num)?'mi':num>=7?'hi':num>=4?'mi':'lo';
+    h+=`<div class="scard py"><div style="flex:1"><div class="cn">${sec.label}</div><div class="sbar"><div class="sbf ${c}" style="width:${pct}%"></div></div></div><div class="cs">${v}</div></div>`;
+    labels.push(sec.label.substring(0,16));data.push(isNaN(num)?0:num);
+  });
+  if(roles)roles.forEach(role=>{
+    if(!ROLES[role])return;
+    const v=psyRoleBil(pid,role),num=parseFloat(v),pct=isNaN(num)?0:(num/10)*100;
+    const c=isNaN(num)?'mi':num>=7?'hi':num>=4?'mi':'lo';
+    h+=`<div class="scard sp"><div style="flex:1"><div class="cn">⭐ ${ROLES[role].label}</div><div class="sbar"><div class="sbf ${c}" style="width:${pct}%"></div></div></div><div class="cs">${v}</div></div>`;
+    labels.push(ROLES[role].label.substring(0,12));data.push(isNaN(num)?0:num);
+  });
+  sg.innerHTML=h;
+  const gv=psyGlob(pid);
+  ng.innerHTML=`<div class="ng" style="background:var(--psy)"><div><div class="nl">Note comportementale globale</div><div class="nm">${ment(gv)}</div></div><div class="nv">${gv}</div></div>`;
+  const canvas=document.getElementById('prc');if(!canvas)return;
+  if(window._prc){window._prc.destroy();window._prc=null;}
+  window._prc=new Chart(canvas,{type:'radar',data:{labels,datasets:[{data,backgroundColor:'rgba(91,58,140,0.15)',borderColor:'rgba(91,58,140,0.85)',borderWidth:2,pointBackgroundColor:'rgba(91,58,140,1)',pointBorderColor:'#fff',pointRadius:3}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}/10`}}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:8,family:'IBM Plex Mono'},color:'#9A9A95',backdropColor:'transparent'},pointLabels:{font:{size:8,family:'IBM Plex Sans',weight:'500'},color:'#1A1A18'},grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+}
+
+// ================================================================
+// RENDER BILAN
+// ================================================================
+function renderBilan(){
+  const pid=document.getElementById('bil-sel').value;
+  const con=document.getElementById('bilcon');
+  if(!pid){con.innerHTML='<div class="empty"><div class="ico">📊</div><p>Sélectionnez un joueur.</p></div>';return;}
+  const p=P[pid];
+  const tv=techGlob(pid),pv=psyGlob(pid);
+  const tn=parseFloat(tv)||0,pn=parseFloat(pv)||0;
+  const ov=pn>0?((tn+pn)/2).toFixed(1):tv;
+  const secs=secs4(pid),grp=pgrp(pid),sp=grp?SPEC[grp]:null;
+
+  let h=`<div class="bhdr">
+    <div><h2>${p.nom}</h2><p>${p.poste||'—'} &nbsp;|&nbsp; ${p.date?fd(p.date):'—'} &nbsp;|&nbsp; Évaluateur : ${p.ev||'—'}</p></div>
+    <div class="bscores">
+      <div class="bsb"><div class="v">${tv}</div><div class="l">Technique</div></div>
+      <div class="bsep"></div>
+      <div class="bsb"><div class="v" style="color:#C8A0FF">${pv}</div><div class="l">Comportemental</div></div>
+      <div class="bsep"></div>
+      <div class="bsb"><div class="v" style="color:#FFD700">${ov}</div><div class="l">Note globale</div></div>
+    </div>
+  </div>`;
+
+  h+=`<div class="blay">
+    <div class="bpan"><h3>Profil technique</h3>
+      <div class="brad"><canvas id="btr" width="360" height="360"></canvas></div>
+      <div class="bcg" id="btcg"></div>
+    </div>
+    <div class="bpan"><h3>Profil comportemental</h3>
+      <div class="brad"><canvas id="bpr" width="360" height="360"></canvas></div>
+      <div class="bcg" id="bpcg"></div>
+    </div>
+  </div>`;
+
+  h+=`<div class="blay">
+    <div class="bpan"><h3>Commentaire technique / Axes de développement</h3>
+      <div class="bcmb">${p.com||'<em>Aucun commentaire saisi.</em>'}</div>
+    </div>
+    <div class="bpan"><h3>Observations comportementales</h3>
+      <div class="bcmb">${p.pcom||'<em>Aucune observation saisie.</em>'}</div>
+    </div>
+  </div>`;
+
+  con.innerHTML=h;
+
+  // Tech radar
+  const tl=[],td=[],tch=[];
+  secs.forEach(sec=>{const v=secBil(pid,sec);const n=parseFloat(v)||0;tl.push(sec.label.substring(0,13));td.push(n);tch.push(`<div class="bcr"><div class="bcl">${sec.label}</div><div class="bcs sv ${cls(n)}">${v}</div></div>`);});
+  if(sp){const v=specBil(pid,grp);const n=parseFloat(v)||0;tl.push('Spéc.');td.push(n);tch.push(`<div class="bcr"><div class="bcl">⭐ Spécifiques</div><div class="bcs sv ${cls(n)}">${v}</div></div>`);}
+  document.getElementById('btcg').innerHTML=tch.join('');
+  if(window._btr){window._btr.destroy();window._btr=null;}
+  window._btr=new Chart(document.getElementById('btr'),{type:'radar',data:{labels:tl,datasets:[{data:td,backgroundColor:'rgba(26,58,107,0.15)',borderColor:'rgba(26,58,107,0.85)',borderWidth:2,pointBackgroundColor:'rgba(26,58,107,1)',pointBorderColor:'#fff',pointRadius:3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:8,family:'IBM Plex Mono'},color:'#9A9A95',backdropColor:'transparent'},pointLabels:{font:{size:8,family:'IBM Plex Sans'},color:'#1A1A18'},grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+
+  // Psy radar
+  const pl=[],pd=[],pch=[];
+  PSECS.forEach(sec=>{const v=psySecBil(pid,sec);const n=parseFloat(v)||0;pl.push(sec.label.substring(0,14));pd.push(n);pch.push(`<div class="bcr"><div class="bcl">${sec.label}</div><div class="bcs sv ${cls(n)}">${v}</div></div>`);});
+  document.getElementById('bpcg').innerHTML=pch.join('');
+  if(window._bpr){window._bpr.destroy();window._bpr=null;}
+  window._bpr=new Chart(document.getElementById('bpr'),{type:'radar',data:{labels:pl,datasets:[{data:pd,backgroundColor:'rgba(91,58,140,0.15)',borderColor:'rgba(91,58,140,0.85)',borderWidth:2,pointBackgroundColor:'rgba(91,58,140,1)',pointBorderColor:'#fff',pointRadius:3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:8,family:'IBM Plex Mono'},color:'#9A9A95',backdropColor:'transparent'},pointLabels:{font:{size:8,family:'IBM Plex Sans'},color:'#1A1A18'},grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+}
+
+// ================================================================
+// FORMAT / EXPORT
+// ================================================================
+function fd(d){if(!d)return'';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
+
+function buildCSV(pid){
+  const p=P[pid];const L=[];
+  L.push('"ANALYSE TECHNIQUE RUGBY À XV"');
+  L.push('"Joueur","'+p.nom+'"');L.push('"Poste","'+p.poste+'"');
+  L.push('"Date","'+fd(p.date)+'"');L.push('"Évaluateur","'+p.ev+'"');L.push('');
+  secs4(pid).forEach(sec=>{
+    const ch=sec.ctx.map(id=>ACTX.find(c=>c.id===id).label);
+    L.push('"'+sec.label+'","Geste",'+ch.map(h=>'"'+h+'"').join(',')+',"Bilan"');
+    sec.gest.forEach((g,gi)=>{
+      const sc=sec.ctx.map(cid=>{const v=gS(pid,sec.id,gi,cid);return v===''?'""':v;}).join(',');
+      L.push('"","'+g+'",'+sc+',"'+gestBil(pid,sec,gi)+'"');
+    });
+    L.push('"","► Bilan",'+sec.ctx.map(()=>'""').join(',')+',"'+secBil(pid,sec)+'"');
+    L.push('');
+  });
+  const grp=pgrp(pid);
+  if(grp&&SPEC[grp]){
+    L.push('"CRITÈRES SPÉCIFIQUES POSTE"');
+    SPEC[grp].items.forEach(item=>{
+      const sc=['fr','ft','pr','do'].map(cid=>{const v=gsS(pid,grp,item.id,cid);return v===''?'""':v;}).join(',');
+      L.push('"","'+item.label+'",'+sc+',"'+specItemBil(pid,grp,item.id)+'"');
+    });
+    L.push('"","► Bilan","","","",""'+',"'+specBil(pid,grp)+'"');L.push('');
+  }
+  L.push('"NOTE TECHNIQUE GLOBALE","'+techGlob(pid)+'"');
+  if(p.com)L.push('"Commentaire tech","'+p.com.replace(/"/g,"'").replace(/\n/g,' ')+'"');
+  L.push('');
+  L.push('"ÉVALUATION COMPORTEMENTALE"');
+  PSECS.forEach(sec=>{L.push('"'+sec.label+'","'+psySecBil(pid,sec)+'"');});
+  L.push('"NOTE COMPORTEMENTALE GLOBALE","'+psyGlob(pid)+'"');
+  if(p.pcom)L.push('"Observations","'+p.pcom.replace(/"/g,"'").replace(/\n/g,' ')+'"');
+  return L.join('\n');
+}
+
+function dlCSV(content,fname){
+  const blob=new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);
+}
+
+function expCSV(){if(!CUR)return;const p=P[CUR];dlCSV(buildCSV(CUR),'analyse_'+p.nom.replace(/\s+/g,'_')+'_'+(p.date||'nd')+'.csv');}
+function expAllCSV(){const ids=Object.keys(P);if(!ids.length)return;dlCSV(ids.map(id=>buildCSV(id)).join('\n\n'+'='.repeat(40)+'\n\n'),'analyse_equipe_'+new Date().toISOString().split('T')[0]+'.csv');}
+function expBilanCSV(){
+  const pid=document.getElementById('bil-sel').value;if(!pid)return;
+  const p=P[pid];
+  dlCSV(buildCSV(pid),'bilan_'+p.nom.replace(/\s+/g,'_')+'.csv');
+}
+
+// ================================================================
+// SIMULATION
+// ================================================================
+function rnd(a,b){return Math.round((Math.random()*(b-a)+a)*2)/2;}
+
+function genSc(profile,pid){
+  const sc={},ssc={};
+  secs4(pid).forEach(sec=>{
+    let base=profile.base;
+    if(profile.str&&profile.str.includes(sec.id))base=Math.min(10,base+1.5);
+    if(profile.wk&&profile.wk.includes(sec.id))base=Math.max(1,base-1.5);
+    sec.gest.forEach((g,gi)=>sec.ctx.forEach(cid=>{
+      if(Math.random()>.12)sc[sec.id+'_'+gi+'_'+cid]=Math.min(10,Math.max(0,rnd(base-profile.v,base+profile.v)));
+    }));
+  });
+  const grp=pgrp(pid);
+  if(grp&&SPEC[grp]){
+    SPEC[grp].items.forEach(item=>['fr','ft','pr','do'].forEach(cid=>{
+      if(Math.random()>.15)ssc['s_'+grp+'_'+item.id+'_'+cid]=Math.min(10,Math.max(0,rnd(profile.base-profile.v,profile.base+profile.v)));
+    }));
+  }
+  return{sc,ssc};
+}
+
+function genPsc(profile){
+  const psc={};
+  PSECS.forEach(sec=>sec.gest.forEach((g,gi)=>PCTX.forEach(ctx=>{
+    if(Math.random()>.2)psc['py_'+sec.id+'_'+gi+'_'+ctx.id]=Math.min(10,Math.max(0,rnd(profile.base-profile.v,profile.base+profile.v)));
+  })));
+  return psc;
+}
+
+const SD=[
+  {nom:"Julien Marchand",poste:"2 - Talonneur",pr:{base:7.5,v:1,str:["mel","tou","con"],wk:["jpa","cou"]},com:"Excellent talonneur, leader naturel.",pcom:"Leadership fort, gère très bien les situations difficiles."},
+  {nom:"Rodrigo Prata",poste:"1 - Pilier gauche",pr:{base:6.8,v:1.2,str:["mel","con"],wk:["cou","jpa"]},com:"",pcom:""},
+  {nom:"Thomas Laclayat",poste:"3 - Pilier droit",pr:{base:7.0,v:1,str:["mel","con"],wk:["cou"]},com:"",pcom:""},
+  {nom:"Romain Taofifenua",poste:"4 - Deuxième ligne",pr:{base:7.2,v:1.2,str:["mel","tou","con"],wk:["jpa"]},com:"",pcom:""},
+  {nom:"Florian Verhaeghe",poste:"5 - Deuxième ligne",pr:{base:6.5,v:1.5,str:["tou","con"],wk:["jpa"]},com:"",pcom:""},
+  {nom:"Anthony Jelonch",poste:"6 - Troisième ligne aile",pr:{base:7.8,v:0.8,str:["con","pla","cou"],wk:["jpa"]},com:"Excellent impact.",pcom:"Gestion de l'erreur remarquable, communication exemplaire."},
+  {nom:"Dylan Cretin",poste:"7 - Troisième ligne aile",pr:{base:7.0,v:1,str:["pla","con","cou"],wk:["mel"]},com:"",pcom:""},
+  {nom:"Gregory Alldritt",poste:"8 - Troisième ligne centre",pr:{base:8.2,v:0.8,str:["con","fra","cou","pas"],wk:["mel"]},com:"Joueur complet.",pcom:"Leadership naturel, très bon hors groupe également."},
+  {nom:"Baptiste Couilloud",poste:"9 - Demi de mêlée",pr:{base:7.5,v:0.8,str:["pas","jp3","cou"],wk:["con"]},com:"Excellent distributeur.",pcom:"Gestion du stress très efficace, communication au top."},
+  {nom:"Léo Carbonneau",poste:"9 - Demi de mêlée",pr:{base:6.2,v:1.2,str:["pas","cou"],wk:["con"]},com:"",pcom:"Bonne attitude hors groupe, progresse en confiance."},
+  {nom:"Romain Ntamack",poste:"10 - Demi d'ouverture",pr:{base:8.5,v:0.6,str:["jp3","pas","fra","rec"],wk:["con"]},com:"Classe internationale.",pcom:"Gestion mentale exceptionnelle. Référence."},
+  {nom:"Hugo Auradou",poste:"4 - Deuxième ligne",pr:{base:6.8,v:1.3,str:["tou","con"],wk:["jpa"]},com:"",pcom:""},
+  {nom:"Pierre Bourgarit",poste:"2 - Talonneur",pr:{base:7.0,v:1,str:["con","mel"],wk:["jpa"]},com:"",pcom:""},
+  {nom:"Yoram Moefana",poste:"12 - Centre",pr:{base:7.8,v:0.9,str:["fra","con","pla"],wk:["jp3"]},com:"Puissant, percutant.",pcom:""},
+  {nom:"Gaël Fickou",poste:"13 - Centre",pr:{base:8.0,v:0.7,str:["fra","pas","rec","pla"],wk:[]},com:"Centre complet.",pcom:"Très mature mentalement."},
+  {nom:"Damian Penaud",poste:"11 - Ailier gauche",pr:{base:8.3,v:0.7,str:["cou","fra","rec","jp3"],wk:["con"]},com:"Ailier de très haut niveau.",pcom:""},
+  {nom:"Louis Bielle-Biarrey",poste:"14 - Ailier droit",pr:{base:7.6,v:0.9,str:["cou","fra","rec"],wk:["con"]},com:"",pcom:""},
+  {nom:"Thomas Ramos",poste:"15 - Arrière",pr:{base:8.1,v:0.7,str:["jp3","rec","cou","pas"],wk:["con"]},com:"Arrière complet.",pcom:"Leadership défensif, très bon sous pression."},
+  {nom:"Maxime Mbanda",poste:"8 - Troisième ligne centre",pr:{base:6.5,v:1.4,str:["con","cou"],wk:["jpa","pas"]},com:"",pcom:""},
+  {nom:"Charlie Faumuina",poste:"3 - Pilier droit",pr:{base:6.2,v:1.5,str:["mel","con"],wk:["cou","jpa"]},com:"",pcom:""},
+  {nom:"Swan Rebbadj",poste:"6 - Troisième ligne aile",pr:{base:6.8,v:1.2,str:["pla","con"],wk:["jpa"]},com:"",pcom:""},
+  {nom:"Enzo Hervé",poste:"10 - Demi d'ouverture",pr:{base:6.5,v:1.3,str:["jp3","pas"],wk:["con"]},com:"Jeune ouvreur prometteur.",pcom:"Gestion du stress à travailler, bon potentiel."},
+  {nom:"Théo Attissogbe",poste:"14 - Ailier droit",pr:{base:7.2,v:1,str:["cou","fra"],wk:["con"]},com:"",pcom:""},
+  {nom:"Pierre-Louis Barassi",poste:"12 - Centre",pr:{base:7.0,v:1.1,str:["fra","pla"],wk:["jp3"]},com:"",pcom:""},
+  {nom:"Posolo Tuilagi",poste:"1 - Pilier gauche",pr:{base:6.0,v:1.5,str:["mel","con"],wk:["cou","jpa"]},com:"",pcom:""},
+  {nom:"Killian Geraci",poste:"2 - Talonneur",pr:{base:6.3,v:1.3,str:["tou","mel"],wk:["jpa"]},com:"",pcom:""},
+  {nom:"Ulupano Seuteni",poste:"13 - Centre",pr:{base:7.4,v:1,str:["fra","con","pla"],wk:["jp3"]},com:"",pcom:""},
+  {nom:"Baptiste Pesenti",poste:"15 - Arrière",pr:{base:6.8,v:1.2,str:["jp3","rec"],wk:["con"]},com:"",pcom:""},
+  {nom:"Mathieu Hirigoyen",poste:"11 - Ailier gauche",pr:{base:7.1,v:1,str:["cou","fra","rec"],wk:["con"]},com:"",pcom:""},
+  {nom:"Alexandre Fischer",poste:"7 - Troisième ligne aile",pr:{base:6.9,v:1.2,str:["pla","con","cou"],wk:["jpa"]},com:"",pcom:""},
+];
+
+function loadSim(){
+  if(!confirm('Charger la simulation 30 joueurs ?'))return;
+  P={};
+  SD.forEach((j,idx)=>{
+    const id='sim'+idx;
+    P[id]={id,nom:j.nom,poste:j.poste,date:'2025-03-15',ev:'T. Marchand',sc:{},ssc:{},psc:{},com:j.com||'',pcom:j.pcom||''};
+    const{sc,ssc}=genSc(j.pr,id);
+    P[id].sc=sc;P[id].ssc=ssc;
+    P[id].psc=genPsc(j.pr);
+  });
+  CUR=Object.keys(P)[0];
+  renderTabs();renderG();fillSel('psy-sel');fillSel('bil-sel');
+}
+
+document.getElementById('in-date').value=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
